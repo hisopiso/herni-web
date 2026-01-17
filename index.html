@@ -3,144 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hisikova Faktorka - Admin System</title>
+    <title>Hisikova Faktorka - Oprava</title>
     <style>
-        body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: #0d1b24; color: white; }
-        header { text-align: center; padding: 40px; background-color: #0a141a; border-bottom: 2px solid #00d2ff; }
-        nav { background-color: #0a141a; text-align: center; padding: 15px; }
-        nav a { color: #00d2ff; text-decoration: none; margin: 0 15px; font-weight: bold; cursor: pointer; }
-
-        .container { max-width: 1000px; margin: 30px auto; padding: 20px; }
-
-        /* Seznam serverů */
-        .server-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .server-card { background-color: #12232c; border: 1px solid #1a2a33; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; }
-        .server-card:hover { border-color: #00d2ff; }
-
-        /* Skryté sekce */
-        #server-detail, #admin-panel { display: none; }
-
-        /* OPRAVA OVERLAPU V ADMIN PANELU */
-        .admin-box {
-            background-color: #1a2e38;
-            border: 2px dashed #00d2ff;
-            padding: 25px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-
-        .admin-list {
-            list-style: none;
-            padding: 0;
-            margin: 20px 0;
-        }
-
-        .admin-list li {
-            background: #0a141a;
-            margin-bottom: 10px;
-            padding: 15px;
-            border-radius: 5px;
-            display: flex; /* Zarovná text a hodnotu vedle sebe */
-            justify-content: space-between;
-            align-items: center;
-            border-left: 4px solid #00d2ff;
-        }
-
-        .secret-info { 
-            color: #ffcc00; 
-            font-weight: bold; 
-            font-family: monospace;
-            background: #222;
-            padding: 5px 10px;
-            border-radius: 3px;
-            word-break: break-all; /* Zabrání přetečení dlouhých hesel */
-        }
-
-        /* Modal Login */
-        .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
-        .modal-content { background: #12232c; margin: 10% auto; padding: 30px; border: 2px solid #00d2ff; width: 320px; border-radius: 10px; text-align: center; }
-        .modal-content input { width: 100%; padding: 12px; margin: 10px 0; background: #0a141a; border: 1px solid #333; color: white; box-sizing: border-box; }
-        .btn-login { width: 100%; padding: 12px; background: #00d2ff; border: none; font-weight: bold; cursor: pointer; color: black; }
+        body { margin: 0; padding: 0; font-family: sans-serif; background-color: #0d1b24; color: white; }
+        header { text-align: center; padding: 30px; background-color: #0a141a; border-bottom: 2px solid #00d2ff; }
+        nav { background-color: #0a141a; text-align: center; padding: 15px; border-bottom: 1px solid #1a2a33; }
+        nav a { color: #00d2ff; text-decoration: none; margin: 0 15px; font-weight: bold; cursor: pointer; display: inline-block; }
+        .container { max-width: 900px; margin: 20px auto; padding: 20px; }
+        .card { background: #12232c; padding: 20px; border-radius: 10px; border: 1px solid #1a2a33; margin-bottom: 20px; cursor: pointer; }
+        .card:hover { border-color: #00d2ff; }
+        #admin-panel, #server-detail { display: none; }
+        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+        .modal-content { background: #12232c; margin: 15% auto; padding: 30px; width: 300px; border: 2px solid #00d2ff; border-radius: 10px; text-align: center; }
+        input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; background: #0a141a; color: white; border: 1px solid #333; }
+        button { background: #00d2ff; color: black; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; }
+        .admin-item { background: #0a141a; padding: 10px; margin: 10px 0; border-left: 4px solid #ffcc00; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
 <header>
     <h1>Hisikova Faktorka</h1>
-    <p>Správa serverů a přihlášení</p>
 </header>
 
 <nav>
-    <a onclick="showList()">Domů / Servery</a>
-    <a id="admin-nav-link" onclick="openLogin()">Administrace (Zamčeno)</a>
+    <a href="javascript:void(0)" onclick="uiShowList()">Domů / Servery</a>
+    <a href="javascript:void(0)" id="nav-admin" onclick="uiOpenLogin()">Administrace (Zamčeno)</a>
 </nav>
 
 <div class="container">
-    
     <div id="server-list">
-        <h2>Vyberte server</h2>
-        <div class="server-grid">
-            <div class="server-card" onclick="showDetail('Factorio', '185.180.2.32:27861', 'Hlavní server faktorky.', '1.1')">
-                <h3>Factorio</h3>
-                <p>Klikni pro více info</p>
-            </div>
+        <h2>Aktuální servery</h2>
+        <div class="card" onclick="uiShowDetail('Factorio', '185.180.2.32:27861')">
+            <h3>Factorio Server</h3>
+            <p>Klikni pro detaily</p>
         </div>
     </div>
 
     <div id="server-detail">
-        <button onclick="showList()" style="background:#00d2ff; border:none; padding:10px; cursor:pointer; margin-bottom:10px;">← Zpět</button>
-        <div style="background:#12232c; padding:20px; border-radius:10px;">
-            <h2 id="det-name"></h2>
-            <p id="det-desc"></p>
-            <p><strong>IP:</strong> <span id="det-ip" style="color:#00d2ff"></span></p>
+        <button onclick="uiShowList()">← Zpět</button>
+        <div class="card" style="margin-top:20px; cursor:default;">
+            <h2 id="det-name" style="color:#00d2ff"></h2>
+            <p>IP adresa: <strong id="det-ip"></strong></p>
         </div>
     </div>
 
     <div id="admin-panel">
-        <h2 style="color: #00d2ff;">🔐 Administrační Panel</h2>
-        <div class="admin-box">
-            <p>Vítejte, pane správce. Zde jsou bezpečně zobrazené údaje:</p>
-            
-            <ul class="admin-list" translate="no"> <li>
-                    <span>FTP Heslo:</span>
-                    <span class="secret-info"5j6mavv1</span>
-                </li>
-                <li>
-                    <span>FTP Login:</span>
-                    <span class="secret-info">27861</span>
-                </li>
-                <li>
-                    <span>Dnešní výdělek:</span>
-                    <span class="secret-info">0 Kč</span>
-                </li>
-            </ul>
-
-            <button onclick="logout()" style="background:#ff4d4d; color:white; border:none; padding:12px 20px; cursor:pointer; border-radius:5px; font-weight:bold;">Odhlásit se</button>
+        <h2>🔐 Administrace</h2>
+        <div class="card" style="cursor:default;">
+            <div class="admin-item"><span>RCON:</span> <span style="color:#ffcc00">MojeHeslo123</span></div>
+            <div class="admin-item"><span>FTP:</span> <span style="color:#ffcc00">user_fakaheda</span></div>
+            <button onclick="location.reload()" style="background:#ff4d4d; color:white;">Odhlásit se</button>
         </div>
     </div>
-
 </div>
 
 <div id="loginModal" class="modal">
     <div class="modal-content">
-        <h2 style="color: #00d2ff;">Login</h2>
-        <input type="text" id="userInp" placeholder="Jméno">
-        <input type="password" id="passInp" placeholder="Heslo">
-        <button class="btn-login" onclick="checkLogin()">VSTOUPIT</button>
-        <p id="err" style="color:red; display:none; margin-top:10px;">Špatné údaje!</p>
-        <p onclick="closeLogin()" style="cursor:pointer; color:#555; margin-top:15px;">Zrušit</p>
+        <h3>Přihlášení</h3>
+        <input type="text" id="u" placeholder="Jméno">
+        <input type="password" id="p" placeholder="Heslo">
+        <button onclick="handleLogin()">VSTOUPIT</button>
+        <p id="error" style="color:red; display:none;">Chyba!</p>
+        <p onclick="uiCloseLogin()" style="cursor:pointer; color:#777; margin-top:10px;">Zavřít</p>
     </div>
 </div>
 
 <script>
-    const ADMIN_USER = "hisik";
-    const ADMIN_PASS = "5j6mavv1";
+    // Konfigurace
+    const MY_USER = "hisik";
+    const MY_PASS = "faktorka2026";
 
-    function checkLogin() {
-        const u = document.getElementById("userInp").value;
-        const p = document.getElementById("passInp").value;
-        if(u === ADMIN_USER && p === ADMIN_PASS) {
-            document.getElementById("loginModal").style.display = "none";
-            showAdmin();
+    // Funkce pro navigaci
+    function uiShowList() {
+        console.log("Zobrazuji seznam");
+        document.getElementById('server-list').style.display = 'block';
+        document.getElementById('server-detail').style.display = 'none';
+        document.getElementById('admin-panel').style.display = 'none';
+    }
+
+    function uiShowDetail(name, ip) {
+        console.log("Zobrazuji detail: " + name);
+        document.getElementById('server-list').style.display = 'none';
+        document.getElementById('server-detail').style.display = 'block';
+        document.getElementById('admin-panel').style.display = 'none';
+        document.getElementById('det-name').innerText = name;
+        document.getElementById('det-ip').innerText = ip;
+    }
+
+    function uiOpenLogin() {
+        console.log("Otevírám login");
+        document.getElementById('loginModal').style.display = 'block';
+    }
+
+    function uiCloseLogin() {
+        document.getElementById('loginModal').style.display = 'none';
+    }
+
+    function handleLogin() {
+        const user = document.getElementById('u').value;
+        const pass = document.getElementById('p').value;
+        if(user === MY_USER && pass === MY_PASS) {
+            uiCloseLogin();
+            document.getElementById('server-list').style.display = 'none';
+            document.getElementById('server-detail').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            document.getElementById('nav-admin').innerText = "Administrace (OK)";
+            document.getElementById('nav-admin').onclick = function() {
+                document.getElementById('server-list').style.display = 'none';
+                document.getElementById('server-detail').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+            };
         } else {
-            document.getElementById("err").style.
+            document.getElementById('error').style.display = 'block';
+        }
+    }
+</script>
+</body>
+</html>
