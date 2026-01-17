@@ -1,192 +1,192 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Můj herní server</title>
-    <style>
-        /* Základní nastavení */
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0d1b24; /* Tmavě modré pozadí */
-            color: #ffffff;
-            line-height: 1.6;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Můj herní server</title>
+    <style>
+        /* Základní nastavení */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d1b24; /* Tmavě modré pozadí */
+            color: #ffffff;
+            line-height: 1.6;
+        }
 
-        /* Hlavička */
-        header {
-            text-align: center;
-            padding: 40px 20px;
-            background-color: #0a141a;
-        }
+        /* Hlavička */
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #0a141a;
+        }
 
-        header h1 {
-            margin: 0;
-            font-size: 2.5rem;
-            letter-spacing: 1px;
-        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            letter-spacing: 1px;
+        }
 
-        header p {
-            color: #888;
-            margin-top: 5px;
-        }
+        header p {
+            color: #888;
+            margin-top: 5px;
+        }
 
-        /* Navigace */
-        nav {
-            background-color: #0a141a;
-            border-top: 1px solid #1a2a33;
-            border-bottom: 1px solid #1a2a33;
-            text-align: center;
-            padding: 10px 0;
-        }
+        /* Navigace */
+        nav {
+            background-color: #0a141a;
+            border-top: 1px solid #1a2a33;
+            border-bottom: 1px solid #1a2a33;
+            text-align: center;
+            padding: 10px 0;
+        }
 
-        nav a {
-            color: #00d2ff;
-            text-decoration: none;
-            margin: 0 15px;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
+        nav a {
+            color: #00d2ff;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
 
-        nav a:hover {
-            text-decoration: underline;
-        }
+        nav a:hover {
+            text-decoration: underline;
+        }
 
-        /* Hlavní kontejner */
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            background-color: #12232c; /* Barva karty */
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+        /* Hlavní kontejner */
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            background-color: #12232c; /* Barva karty */
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
 
-        /* Sekce textu */
-        section {
-            margin-bottom: 30px;
-        }
+        /* Sekce textu */
+        section {
+            margin-bottom: 30px;
+        }
 
-        h2 {
-            color: #00d2ff;
-            font-size: 1.4rem;
-            margin-bottom: 15px;
-        }
+        h2 {
+            color: #00d2ff;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+        }
 
-        .info-label {
-            font-weight: bold;
-            display: inline-block;
-            width: 100px;
-        }
+        .info-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 100px;
+        }
 
-        /* IP adresa styl */
-        .ip-box {
-            background-color: #1a2e38;
-            padding: 10px 15px;
-            border-radius: 4px;
-            display: inline-block;
-            margin-top: 10px;
-            border: 1px solid #253d4a;
-        }
+        /* IP adresa styl */
+        .ip-box {
+            background-color: #1a2e38;
+            padding: 10px 15px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 10px;
+            border: 1px solid #253d4a;
+        }
 
-        /* Seznam pravidel */
-        ul {
-            list-style-type: none;
-            padding-left: 10px;
-        }
+        /* Seznam pravidel */
+        ul {
+            list-style-type: none;
+            padding-left: 10px;
+        }
 
-        ul li::before {
-            content: "•";
-            color: #00d2ff;
-            font-weight: bold;
-            display: inline-block; 
-            width: 1em;
-            margin-left: -1em;
-        }
+        ul li::before {
+            content: "•";
+            color: #00d2ff;
+            font-weight: bold;
+            display: inline-block; 
+            width: 1em;
+            margin-left: -1em;
+        }
 
-        /* Tlačítko */
-        .btn-contact {
-            background-color: #00d2ff;
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            margin-top: 10px;
-        }
+        /* Tlačítko */
+        .btn-contact {
+            background-color: #00d2ff;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
 
-        .btn-contact:hover {
-            background-color: #00b8e6;
-        }
+        .btn-contact:hover {
+            background-color: #00b8e6;
+        }
 
-        /* Patička */
-        footer {
-            text-align: center;
-            padding: 20px;
-            font-size: 0.8rem;
-            color: #555;
-            border-top: 1px solid #1a2a33;
-            margin-top: 40px;
-        }
-    </style>
+        /* Patička */
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.8rem;
+            color: #555;
+            border-top: 1px solid #1a2a33;
+            margin-top: 40px;
+        }
+    </style>
 </head>
 <body>
 
-    <header>
-        <h1>Hisikova Faktorka</h1>
-        <p>Vítej na Webu Serveru Hiskova Faktorka</p>
-    </header>
+    <header>
+        <h1>Můj herní server</h1>
+        <p>Vítej na oficiálních stránkách serveru</p>
+    </header>
 
-    <nav>
-        <a href="#">Domů</a>
-        <a href="#">Server</a>
-        <a href="#">Pravidla</a>
-        <a href="#">Kontakt</a>
-    </nav>
+    <nav>
+        <a href="#">Domů</a>
+        <a href="#">Server</a>
+        <a href="#">Pravidla</a>
+        <a href="#">Kontakt</a>
+    </nav>
 
-    <div class="container">
-        
-        <section>
-            <h2>O serveru</h2>
-            <p>Toto je jednoduchý herní server hostovaný přes Fakahedu. Připoj se k nám a užij si zábavu s ostatními hráči!</p>
-        </section>
+    <div class="container">
+        
+        <section>
+            <h2>O serveru</h2>
+            <p>Toto je jednoduchý herní server hostovaný přes Fakahedu. Připoj se k nám a užij si zábavu s ostatními hráči!</p>
+        </section>
 
-        <section>
-            <h2>Informace o serveru</h2>
-            <p><span class="info-label">Hra:</span> Factorio (možná budeme rozžiřovat) </p>
-            <p><span class="info-label">Verze:</span> Bez Dlc</p>
-            <p><span class="info-label">IP adresa: 185.180.2.32:27861
- </span></p>
-            <div class="ip-box">example.fakaheda.eu</div>
-        </section>
+        <section>
+            <h2>Informace o serveru</h2>
+            <p><span class="info-label">Hra:</span> Factorio </p>
+            <p><span class="info-label">Verze:</span> Bez DLC </p>
+            <p><span class="info-label">IP adresa:185.180.2.32:27861
+ </span></p>
+        
+        </section>
 
-        <section>
-            <h2>Pravidla</h2>
-            <ul>
-                <li>Zákaz cheatů</li>
-                <li>Respektuj ostatní hráče</li>
-                <li>Žádný spam</li>
-                <li>Dodržuj pokyny adminů</li>
-            </ul>
-        </section>
+        <section>
+            <h2>Pravidla</h2>
+            <ul>
+                <li>Zákaz cheatů</li>
+                <li>Respektuj ostatní hráče</li>
+                <li>Žádný spam</li>
+                <li>Dodržuj pokyny adminů</li>
+            </ul>
+        </section>
 
-        <section>
-            <h2>Kontakt</h2>
-            <p><strong>Discord:</strong> tvuj_discord#1234</p>
-            <p><strong>Email:</strong> kontakt@tvujserver.cz</p>
-            <button class="btn-contact">Kontaktovat</button>
-        </section>
+        <section>
+            <h2>Kontakt</h2>
+            <p><strong>Discord:</strong> tvuj_discord#1234</p>
+            <p><strong>Email:</strong> kontakt@tvujserver.cz</p>
+            <button class="btn-contact">Kontaktovat</button>
+        </section>
 
-    </div>
+    </div>
 
-    <footer>
-        © 2026 Můj herní server | Hosting: Fakaheda
-    </footer>
+    <footer>
+        © 2026 Můj herní server | Hosting: Fakaheda
+    </footer>
 
 </body>
 </html>
