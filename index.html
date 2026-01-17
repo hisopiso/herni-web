@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hisikův Server Portal - Pro Edition</title>
+    <title>Hisikův Server Portal</title>
     <style>
         body { margin: 0; padding: 0; font-family: sans-serif; background-color: #0d1b24; color: white; }
         header { text-align: center; padding: 30px; background-color: #0a141a; border-bottom: 2px solid #00d2ff; }
@@ -15,7 +15,9 @@
         #server-list-container { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px; }
         .card { background: #12232c; padding: 20px; border-radius: 10px; border: 1px solid #1a2a33; position: relative; }
         
-        .fakaheda-banner { width: 100%; max-width: 550px; height: auto; border-radius: 5px; margin-top: 10px; border: 1px solid #333; }
+        /* Skrytí rozbitého obrázku */
+        .fakaheda-banner { width: 100%; max-width: 550px; height: auto; border-radius: 5px; margin-top: 10px; border: 1px solid #333; display: block; }
+        .fakaheda-banner[src=""], .fakaheda-banner:not([src]) { display: none; }
 
         .copy-box { 
             background: #0a141a; padding: 8px 12px; border-radius: 5px; margin-top: 15px; 
@@ -35,22 +37,28 @@
             font-size: 0.75rem; font-weight: bold; display: none; z-index: 10;
         }
 
-        #admin-panel, #server-detail, #contact-page { display: none; }
-        
-        input, textarea { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; background: #0a141a; color: white; border: 1px solid #333; border-radius: 5px; }
-        .admin-btn { background: #00d2ff; color: black; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; margin-right: 5px; margin-top: 5px; transition: 0.2s; }
-        .admin-btn:hover { background: #fff; }
-        
-        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
-        .modal-content { background: #12232c; margin: 5% auto; padding: 30px; width: 400px; border: 2px solid #00d2ff; border-radius: 10px; text-align: center; }
+        /* SYSTÉM NOTIFIKACÍ VLEVO NAHOŘE */
+        #toast-container { position: fixed; top: 20px; left: 20px; z-index: 10000; }
+        .toast { 
+            min-width: 200px; padding: 15px 20px; margin-bottom: 10px; border-radius: 8px; 
+            color: white; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            animation: slideIn 0.4s ease forwards; position: relative;
+        }
+        @keyframes slideIn { from { transform: translateX(-120%); } to { transform: translateX(0); } }
+        .toast.success { background: #28a745; border-left: 6px solid #1e7e34; }
+        .toast.error { background: #dc3545; border-left: 6px solid #bd2130; }
 
-        .contact-card { background: #0a141a; padding: 30px; border-radius: 10px; border-left: 5px solid #00d2ff; line-height: 2; }
+        #admin-panel, #server-detail, #contact-page { display: none; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; background: #0a141a; color: white; border: 1px solid #333; border-radius: 5px; }
+        .admin-btn { background: #00d2ff; color: black; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; margin-right: 5px; margin-top: 5px; }
         
         .ftp-info { background: #0a141a; padding: 15px; border-radius: 5px; margin-top: 20px; border: 1px solid #ffcc00; }
         .ftp-info strong { color: #ffcc00; }
     </style>
 </head>
 <body>
+
+<div id="toast-container"></div>
 
 <header>
     <h1>Hisikův Server Portal</h1>
@@ -70,7 +78,7 @@
 
     <div id="contact-page">
         <h2>Kontakt na vedení</h2>
-        <div class="contact-card">
+        <div class="card">
             <p><strong>Discord:</strong> discord.gg/vaseserverinfo</p>
             <p><strong>Email:</strong> podpora@server.cz</p>
             <p><strong>Majitel:</strong> Hisik</p>
@@ -87,9 +95,6 @@
             <div class="copy-box" onclick="copyToClipboard(document.getElementById('det-ip').innerText, this)">
                 <span class="copy-popup">Zkopírováno!</span> IP: <strong id="det-ip"></strong>
             </div>
-            <div id="det-pass-area" class="copy-box pass-style" onclick="copyToClipboard(document.getElementById('det-pass').innerText, this)">
-                <span class="copy-popup">Zkopírováno!</span> Heslo: <strong id="det-pass"></strong>
-            </div>
         </div>
     </div>
 
@@ -98,19 +103,16 @@
             <h2>🔐 Administrace</h2>
             <button class="admin-btn" onclick="location.reload()" style="background:#ff4d4d; color:white;">Odhlásit se</button>
         </div>
-        
         <div class="card" onkeydown="if(event.key === 'Enter') handleCreateServer()">
             <h3>➕ Přidat nový server</h3>
             <input type="text" id="add-name" placeholder="Název serveru">
-            <input type="text" id="add-ip" placeholder="IP:Port">
+            <input type="text" id="add-ip" placeholder="IP:Port (nebo nechte prázdné pro žádnou ikonku)">
             <input type="text" id="add-pass" placeholder="Heslo (volitelné)">
             <textarea id="add-desc" placeholder="Popis..."></textarea>
             <button class="admin-btn" onclick="handleCreateServer()" style="width: 100%;">VYTVOŘIT SERVER</button>
-            
             <div class="ftp-info">
-                <h3>ℹ️ FTP Přístup k Fakahedě</h3>
-                <p>Uživatelské jméno: <strong>27861</strong></p>
-                <p>Heslo: <strong>5j6mavv1</strong></p>
+                <h3>ℹ️ FTP Přístup</h3>
+                <p>Uživatelské jméno: <strong>27861</strong> | Heslo: <strong>5j6mavv1</strong></p>
             </div>
         </div>
     </div>
@@ -131,10 +133,10 @@
 
 <div id="loginModal" class="modal">
     <div class="modal-content" onkeydown="if(event.key === 'Enter') handleLogin()">
-        <h3>Přihlášení správce</h3>
+        <h3>Přihlášení</h3>
         <input type="text" id="u" placeholder="Uživatel" autofocus>
         <input type="password" id="p" placeholder="Heslo">
-        <button class="admin-btn" onclick="handleLogin()">VSTOUPIT (Enter)</button>
+        <button class="admin-btn" onclick="handleLogin()">VSTOUPIT</button>
     </div>
 </div>
 
@@ -142,15 +144,16 @@
     const ADMINS = { "hisik": "5j6mavv1" };
     let isAdmin = false;
     let servers = JSON.parse(localStorage.getItem('myServers')) || [
-        { name: 'Kozlova Faktorka', ip: '185.180.2.32:27861', desc: 'Vítej na serveru!', pass: '1234' }
+        { name: 'Kozlova Faktorka', ip: '185.180.2.32:27861', desc: 'Vítej na Kozlově faktorce!', pass: '' }
     ];
 
-    function copyToClipboard(text, element) {
-        navigator.clipboard.writeText(text).then(() => {
-            const popup = element.querySelector('.copy-popup');
-            popup.style.display = 'block';
-            setTimeout(() => { popup.style.display = 'none'; }, 1500);
-        });
+    function notify(text, type) {
+        const container = document.getElementById('toast-container');
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.innerText = text;
+        container.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3000);
     }
 
     function renderServers() {
@@ -159,50 +162,49 @@
         servers.forEach((srv, index) => {
             const card = document.createElement('div');
             card.className = 'card';
+            // Banner se zobrazí jen když je IP vyplněná
+            const bannerHtml = srv.ip ? `<img class="fakaheda-banner" src="http://query.fakaheda.eu/${srv.ip}.jpg?size=550x100" onerror="this.style.display='none'">` : '';
+            
             card.innerHTML = `
                 <h3 style="margin-top:0;">${srv.name}</h3>
-                <img class="fakaheda-banner" src="http://query.fakaheda.eu/${srv.ip}.jpg?size=550x100">
-                <br>
+                ${bannerHtml}
                 <div class="copy-box" onclick="copyToClipboard('${srv.ip}', this)">
-                    <span class="copy-popup">Zkopírováno!</span> ${srv.ip}
+                    <span class="copy-popup">Zkopírováno!</span> ${srv.ip || 'Bez IP'}
                 </div>
                 <button class="info-button" onclick="uiShowDetail(${index})">Více informací</button>
             `;
             if(isAdmin) {
-                const adminDiv = document.createElement('div');
-                adminDiv.style.marginTop = "15px";
-                adminDiv.innerHTML = `
-                    <button class="admin-btn" style="background:#ffcc00" onclick="uiOpenEdit(${index})">Upravit</button>
-                    <button class="admin-btn" style="background:#ff4d4d; color:white;" onclick="handleDelete(${index})">Smazat</button>
-                `;
-                card.appendChild(adminDiv);
+                const d = document.createElement('div'); d.style.marginTop = "15px";
+                d.innerHTML = `<button class="admin-btn" style="background:#ffcc00" onclick="uiOpenEdit(${index})">Upravit</button>
+                               <button class="admin-btn" style="background:#ff4d4d; color:white;" onclick="handleDelete(${index})">Smazat</button>`;
+                card.appendChild(d);
             }
             container.appendChild(card);
         });
     }
 
-    function handleLogin() {
-        if(ADMINS[document.getElementById('u').value] === document.getElementById('p').value) {
-            isAdmin = true;
-            uiCloseModal('loginModal');
-            document.getElementById('nav-admin').innerText = "🛠 Admin Panel";
-            uiShowList();
-        } else { alert("Špatné údaje!"); }
+    function handleCreateServer() {
+        const n = document.getElementById('add-name').value;
+        const i = document.getElementById('add-ip').value;
+        if(n) {
+            servers.push({ name: n, ip: i, pass: document.getElementById('add-pass').value, desc: document.getElementById('add-desc').value });
+            saveAndRefresh();
+            notify("Server byl úspěšně vytvořen!", "success");
+            document.getElementById('add-name').value = ''; document.getElementById('add-ip').value = '';
+        }
     }
 
-    function uiOpenEdit(index) {
-        const srv = servers[index];
-        document.getElementById('edit-index').value = index;
-        document.getElementById('edit-name').value = srv.name;
-        document.getElementById('edit-ip').value = srv.ip;
-        document.getElementById('edit-pass').value = srv.pass || '';
-        document.getElementById('edit-desc').value = srv.desc || '';
-        document.getElementById('editModal').style.display = 'block';
+    function handleDelete(index) {
+        if(confirm('Opravdu smazat?')) {
+            servers.splice(index, 1);
+            saveAndRefresh();
+            notify("Server byl smazán!", "error");
+        }
     }
 
     function handleSaveEdit() {
-        const index = document.getElementById('edit-index').value;
-        servers[index] = {
+        const idx = document.getElementById('edit-index').value;
+        servers[idx] = {
             name: document.getElementById('edit-name').value,
             ip: document.getElementById('edit-ip').value,
             pass: document.getElementById('edit-pass').value,
@@ -210,51 +212,29 @@
         };
         saveAndRefresh();
         uiCloseModal('editModal');
+        notify("Změny byly uloženy!", "success");
     }
 
-    function uiShowDetail(index) {
-        const srv = servers[index];
-        uiHideAll();
-        document.getElementById('server-detail').style.display = 'block';
-        document.getElementById('det-name').innerText = srv.name;
-        document.getElementById('det-ip').innerText = srv.ip;
-        document.getElementById('det-desc').innerText = srv.desc || 'Bez popisu.';
-        const passArea = document.getElementById('det-pass-area');
-        if(srv.pass) {
-            passArea.style.display = 'inline-block';
-            document.getElementById('det-pass').innerText = srv.pass;
-        } else { passArea.style.display = 'none'; }
-        document.getElementById('det-banner-box').innerHTML = `<img class="fakaheda-banner" src="http://query.fakaheda.eu/${srv.ip}.jpg?size=550x100">`;
+    function handleLogin() {
+        if(ADMINS[document.getElementById('u').value] === document.getElementById('p').value) {
+            isAdmin = true; uiCloseModal('loginModal'); uiShowList(); notify("Vítej, admine!", "success");
+        } else { notify("Chybné údaje!", "error"); }
     }
 
-    function handleCreateServer() {
-        const name = document.getElementById('add-name').value;
-        const ip = document.getElementById('add-ip').value;
-        if(name && ip) {
-            servers.push({ name, ip, pass: document.getElementById('add-pass').value, desc: document.getElementById('add-desc').value });
-            saveAndRefresh();
-            document.getElementById('add-name').value = ''; document.getElementById('add-ip').value = '';
-            document.getElementById('add-pass').value = ''; document.getElementById('add-desc').value = '';
-        }
-    }
-
-    function handleDelete(index) { if(confirm('Smazat?')) { servers.splice(index, 1); saveAndRefresh(); } }
+    // Pomocné funkce...
     function saveAndRefresh() { localStorage.setItem('myServers', JSON.stringify(servers)); renderServers(); }
-    
-    function uiHideAll() {
-        ['server-list', 'server-detail', 'admin-panel', 'contact-page'].forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.style.display = 'none';
-        });
+    function copyToClipboard(t, e) { navigator.clipboard.writeText(t); const p = e.querySelector('.copy-popup'); p.style.display='block'; setTimeout(()=>p.style.display='none', 1000); }
+    function uiHideAll() { ['server-list','server-detail','admin-panel','contact-page'].forEach(id=>document.getElementById(id).style.display='none'); }
+    function uiShowList() { uiHideAll(); document.getElementById('server-list').style.display='block'; renderServers(); }
+    function uiShowContact() { uiHideAll(); document.getElementById('contact-page').style.display='block'; }
+    function uiToggleAdmin() { isAdmin ? (uiHideAll(), document.getElementById('admin-panel').style.display='block') : document.getElementById('loginModal').style.display='block'; }
+    function uiCloseModal(id) { document.getElementById(id).style.display='none'; }
+    function uiShowDetail(i) { 
+        const s = servers[i]; uiHideAll(); document.getElementById('server-detail').style.display='block';
+        document.getElementById('det-name').innerText = s.name; document.getElementById('det-ip').innerText = s.ip;
+        document.getElementById('det-desc').innerText = s.desc || 'Bez popisu.';
+        document.getElementById('det-banner-box').innerHTML = s.ip ? `<img class="fakaheda-banner" src="http://query.fakaheda.eu/${s.ip}.jpg?size=550x100">` : '';
     }
-
-    function uiShowList() { uiHideAll(); document.getElementById('server-list').style.display = 'block'; renderServers(); }
-    function uiShowContact() { uiHideAll(); document.getElementById('contact-page').style.display = 'block'; }
-    function uiToggleAdmin() { 
-        if(isAdmin) { uiHideAll(); document.getElementById('admin-panel').style.display = 'block'; } 
-        else { document.getElementById('loginModal').style.display = 'block'; }
-    }
-    function uiCloseModal(id) { document.getElementById(id).style.display = 'none'; }
 
     renderServers();
 </script>
