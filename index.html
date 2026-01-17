@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hisikova Faktorka - Admin System</title>
+    <title>Hisikova Faktorka - Plná Správa</title>
     <style>
         body { margin: 0; padding: 0; font-family: sans-serif; background-color: #0d1b24; color: white; }
         header { text-align: center; padding: 30px; background-color: #0a141a; border-bottom: 2px solid #00d2ff; }
@@ -19,17 +19,15 @@
         
         #admin-panel, #server-detail { display: none; }
         
-        /* Formulář v adminu */
-        .admin-flex { display: flex; gap: 30px; flex-wrap: wrap; }
-        .admin-section { flex: 1; min-width: 300px; }
-        
+        /* Modály */
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
-        .modal-content { background: #12232c; margin: 10% auto; padding: 30px; width: 300px; border: 2px solid #00d2ff; border-radius: 10px; text-align: center; }
+        .modal-content { background: #12232c; margin: 10% auto; padding: 30px; width: 350px; border: 2px solid #00d2ff; border-radius: 10px; text-align: center; }
         
-        input, textarea { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; background: #0a141a; color: white; border: 1px solid #333; border-radius: 4px; }
-        button { background: #00d2ff; color: black; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; }
-        .btn-delete { background: #ff4d4d; color: white; margin-top: 10px; font-size: 0.8rem; }
+        input, textarea { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; background: #0a141a; color: white; border: 1px solid #333; border-radius: 4px; font-family: inherit; }
+        button { background: #00d2ff; color: black; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; margin: 5px; }
         
+        .btn-edit { background: #ffcc00; color: black; font-size: 0.8rem; }
+        .btn-delete { background: #ff4d4d; color: white; font-size: 0.8rem; }
         .admin-item { background: #0a141a; padding: 10px; margin: 10px 0; border-left: 4px solid #ffcc00; display: flex; justify-content: space-between; }
     </style>
 </head>
@@ -47,8 +45,7 @@
 <div class="container">
     <div id="server-list">
         <h2>Aktuální servery</h2>
-        <div id="server-list-container">
-            </div>
+        <div id="server-list-container"></div>
     </div>
 
     <div id="server-detail">
@@ -63,27 +60,26 @@
     </div>
 
     <div id="admin-panel">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2>🔐 Administrační rozhraní</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>🔐 Administrace</h2>
             <button onclick="location.reload()" style="background:#ff4d4d; color:white;">Odhlásit se</button>
         </div>
 
-        <div class="admin-flex">
-            <div class="admin-section">
-                <h3>Přístupové údaje</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h3>➕ Přidat nový server</h3>
+                <div class="card" style="cursor:default;">
+                    <input type="text" id="add-name" placeholder="Název serveru">
+                    <input type="text" id="add-ip" placeholder="IP Adresa">
+                    <textarea id="add-desc" placeholder="Popis..."></textarea>
+                    <button onclick="handleCreateServer()" style="width: 100%;">VYTVOŘIT</button>
+                </div>
+            </div>
+            <div>
+                <h3>ℹ️ FTP Údaje</h3>
                 <div class="card" style="cursor:default;">
                     <div class="admin-item"><span>FTP NAME:</span> <span style="color:#ffcc00">27861</span></div>
                     <div class="admin-item"><span>FTP HESLO:</span> <span style="color:#ffcc00">5j6mavv1</span></div>
-                </div>
-            </div>
-
-            <div class="admin-section">
-                <h3>➕ Přidat nový server</h3>
-                <div class="card" style="cursor:default;">
-                    <input type="text" id="add-name" placeholder="Název serveru (např. Minecraft)">
-                    <input type="text" id="add-ip" placeholder="IP Adresa">
-                    <textarea id="add-desc" placeholder="Popis serveru a info..."></textarea>
-                    <button onclick="handleCreateServer()" style="width: 100%;">VYTVOŘIT SERVER</button>
                 </div>
             </div>
         </div>
@@ -96,8 +92,19 @@
         <input type="text" id="u" placeholder="Jméno">
         <input type="password" id="p" placeholder="Heslo">
         <button onclick="handleLogin()">VSTOUPIT</button>
-        <p id="error" style="color:red; display:none;">Chyba!</p>
-        <p onclick="uiCloseLogin()" style="cursor:pointer; color:#777; margin-top:10px;">Zavřít</p>
+        <p onclick="uiCloseModal('loginModal')" style="cursor:pointer; color:#777;">Zavřít</p>
+    </div>
+</div>
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <h3>Upravit server</h3>
+        <input type="hidden" id="edit-index">
+        <input type="text" id="edit-name" placeholder="Název">
+        <input type="text" id="edit-ip" placeholder="IP Adresa">
+        <textarea id="edit-desc" placeholder="Popis..."></textarea>
+        <button onclick="handleSaveEdit()" style="width: 100%;">ULOŽIT ZMĚNY</button>
+        <button onclick="uiCloseModal('editModal')" style="background: #555; color: white; width: 100%; margin-left: 0;">ZRUŠIT</button>
     </div>
 </div>
 
@@ -106,72 +113,81 @@
     const MY_PASS = "5j6mavv1";
     let isAdmin = false;
 
-    // Načtení serverů z LocalStorage nebo použití výchozího
     let servers = JSON.parse(localStorage.getItem('myServers')) || [
-        { name: 'Factorio Server', ip: '185.180.2.32:27861', desc: 'Hlavní technický server pro komunitu Hisikova Faktorka.' }
+        { name: 'Factorio Server', ip: '185.180.2.32:27861', desc: 'Výchozí server.' }
     ];
 
-    // Funkce pro vykreslení seznamu karet
     function renderServers() {
         const container = document.getElementById('server-list-container');
         container.innerHTML = '';
-
         servers.forEach((srv, index) => {
             const card = document.createElement('div');
             card.className = 'card';
             card.onclick = () => uiShowDetail(srv.name, srv.ip, srv.desc);
-            
-            card.innerHTML = `
-                <h3>${srv.name}</h3>
-                <p style="font-size: 0.8rem; color: #888;">Klikni pro detaily</p>
-                <div style="color: #00d2ff; font-weight: bold; margin-top: 10px;">${srv.ip}</div>
-            `;
+            card.innerHTML = `<h3>${srv.name}</h3><div style="color:#00d2ff">${srv.ip}</div>`;
 
-            // Pokud je admin, přidáme tlačítko smazat
             if(isAdmin) {
+                const controls = document.createElement('div');
+                controls.style.marginTop = "15px";
+                
+                const editBtn = document.createElement('button');
+                editBtn.innerText = 'Upravit';
+                editBtn.className = 'btn-edit';
+                editBtn.onclick = (e) => { e.stopPropagation(); uiOpenEdit(index); };
+                
                 const delBtn = document.createElement('button');
-                delBtn.innerText = 'Smazat server';
+                delBtn.innerText = 'Smazat';
                 delBtn.className = 'btn-delete';
-                delBtn.onclick = (e) => {
-                    e.stopPropagation(); // Aby se neotevřel detail
-                    handleDeleteServer(index);
-                };
-                card.appendChild(delBtn);
+                delBtn.onclick = (e) => { e.stopPropagation(); handleDelete(index); };
+                
+                controls.append(editBtn, delBtn);
+                card.appendChild(controls);
             }
-
             container.appendChild(card);
         });
     }
 
-    // Funkce pro přidání serveru
     function handleCreateServer() {
         const name = document.getElementById('add-name').value;
         const ip = document.getElementById('add-ip').value;
         const desc = document.getElementById('add-desc').value;
-
         if(name && ip) {
             servers.push({ name, ip, desc });
-            localStorage.setItem('myServers', JSON.stringify(servers));
-            
-            // Vymazat pole
-            document.getElementById('add-name').value = '';
-            document.getElementById('add-ip').value = '';
-            document.getElementById('add-desc').value = '';
-            
-            renderServers();
-            alert('Server úspěšně přidán!');
-        } else {
-            alert('Vyplňte alespoň název a IP!');
+            saveAndRefresh();
+            document.getElementById('add-name').value = ''; document.getElementById('add-ip').value = ''; document.getElementById('add-desc').value = '';
         }
     }
 
-    // Smazání serveru
-    function handleDeleteServer(index) {
-        if(confirm('Opravdu smazat tento server?')) {
+    function uiOpenEdit(index) {
+        const srv = servers[index];
+        document.getElementById('edit-index').value = index;
+        document.getElementById('edit-name').value = srv.name;
+        document.getElementById('edit-ip').value = srv.ip;
+        document.getElementById('edit-desc').value = srv.desc;
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    function handleSaveEdit() {
+        const index = document.getElementById('edit-index').value;
+        servers[index] = {
+            name: document.getElementById('edit-name').value,
+            ip: document.getElementById('edit-ip').value,
+            desc: document.getElementById('edit-desc').value
+        };
+        saveAndRefresh();
+        uiCloseModal('editModal');
+    }
+
+    function handleDelete(index) {
+        if(confirm('Smazat tento server?')) {
             servers.splice(index, 1);
-            localStorage.setItem('myServers', JSON.stringify(servers));
-            renderServers();
+            saveAndRefresh();
         }
+    }
+
+    function saveAndRefresh() {
+        localStorage.setItem('myServers', JSON.stringify(servers));
+        renderServers();
     }
 
     function uiShowList() {
@@ -183,41 +199,23 @@
     function uiShowDetail(name, ip, desc) {
         document.getElementById('server-list').style.display = 'none';
         document.getElementById('server-detail').style.display = 'block';
-        document.getElementById('admin-panel').style.display = 'none';
         document.getElementById('det-name').innerText = name;
         document.getElementById('det-ip').innerText = ip;
-        document.getElementById('det-desc').innerText = desc || 'Žádný popis nebyl zadán.';
+        document.getElementById('det-desc').innerText = desc || 'Bez popisu.';
     }
 
-    function uiOpenLogin() {
-        document.getElementById('loginModal').style.display = 'block';
-    }
-
-    function uiCloseLogin() {
-        document.getElementById('loginModal').style.display = 'none';
-    }
+    function uiOpenLogin() { document.getElementById('loginModal').style.display = 'block'; }
+    function uiCloseModal(id) { document.getElementById(id).style.display = 'none'; }
 
     function handleLogin() {
-        const user = document.getElementById('u').value;
-        const pass = document.getElementById('p').value;
-        if(user === MY_USER && pass === MY_PASS) {
-            isAdmin = true;
-            uiCloseLogin();
-            renderServers(); // Překreslit s tlačítky smazat
+        if(document.getElementById('u').value === MY_USER && document.getElementById('p').value === MY_PASS) {
+            isAdmin = true; uiCloseModal('loginModal'); renderServers();
             document.getElementById('server-list').style.display = 'none';
             document.getElementById('admin-panel').style.display = 'block';
-            document.getElementById('nav-admin').innerText = "Administrace (Přihlášen)";
-            document.getElementById('nav-admin').onclick = () => {
-                document.getElementById('server-list').style.display = 'none';
-                document.getElementById('admin-panel').style.display = 'block';
-                document.getElementById('server-detail').style.display = 'none';
-            };
-        } else {
-            document.getElementById('error').style.display = 'block';
+            document.getElementById('nav-admin').innerText = "Administrace (OK)";
         }
     }
 
-    // Inicializace při načtení
     renderServers();
 </script>
 </body>
