@@ -3,136 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Můj herní server</title>
+    <title>Hisikova Faktorka</title>
     <style>
-        /* Základní nastavení */
+        /* PŮVODNÍ STYLY */
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0d1b24; /* Tmavě modré pozadí */
-            color: #ffffff;
-            line-height: 1.6;
+            background-color: #0d1b24; color: #ffffff; line-height: 1.6;
         }
+        header { text-align: center; padding: 40px 20px; background-color: #0a141a; }
+        header h1 { margin: 0; font-size: 2.5rem; letter-spacing: 1px; }
+        header p { color: #888; margin-top: 5px; }
+        nav { background-color: #0a141a; border-top: 1px solid #1a2a33; border-bottom: 1px solid #1a2a33; text-align: center; padding: 10px 0; }
+        nav a { color: #00d2ff; text-decoration: none; margin: 0 15px; font-weight: 500; font-size: 0.9rem; cursor: pointer; }
+        nav a:hover { text-decoration: underline; }
+        .container { max-width: 800px; margin: 40px auto; background-color: #12232c; padding: 40px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #00d2ff; font-size: 1.4rem; margin-bottom: 15px; }
+        .info-label { font-weight: bold; display: inline-block; width: 100px; }
+        .ip-box { background-color: #1a2e38; padding: 10px 15px; border-radius: 4px; display: inline-block; margin-top: 10px; border: 1px solid #253d4a; font-family: monospace; color: #00d2ff; }
+        ul { list-style-type: none; padding-left: 10px; }
+        ul li::before { content: "•"; color: #00d2ff; font-weight: bold; display: inline-block; width: 1em; margin-left: -1em; }
+        .btn-contact { background-color: #00d2ff; color: #000; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; margin-top: 10px; }
+        footer { text-align: center; padding: 20px; font-size: 0.8rem; color: #555; border-top: 1px solid #1a2a33; margin-top: 40px; }
 
-        /* Hlavička */
-        header {
-            text-align: center;
-            padding: 40px 20px;
-            background-color: #0a141a;
+        /* NOVÉ STYLY PRO LOGIN */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);
         }
-
-        header h1 {
-            margin: 0;
-            font-size: 2.5rem;
-            letter-spacing: 1px;
+        .modal-content {
+            background-color: #12232c; margin: 10% auto; padding: 30px; border: 1px solid #00d2ff; width: 300px; border-radius: 10px; text-align: center;
         }
-
-        header p {
-            color: #888;
-            margin-top: 5px;
+        .modal-content input {
+            width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #1a2a33; background: #0a141a; color: white; box-sizing: border-box;
         }
-
-        /* Navigace */
-        nav {
-            background-color: #0a141a;
-            border-top: 1px solid #1a2a33;
-            border-bottom: 1px solid #1a2a33;
-            text-align: center;
-            padding: 10px 0;
+        .btn-login {
+            background-color: #00d2ff; color: black; border: none; width: 100%; padding: 10px; cursor: pointer; font-weight: bold; border-radius: 4px;
         }
-
-        nav a {
-            color: #00d2ff;
-            text-decoration: none;
-            margin: 0 15px;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        nav a:hover {
-            text-decoration: underline;
-        }
-
-        /* Hlavní kontejner */
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            background-color: #12232c; /* Barva karty */
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        /* Sekce textu */
-        section {
-            margin-bottom: 30px;
-        }
-
-        h2 {
-            color: #00d2ff;
-            font-size: 1.4rem;
-            margin-bottom: 15px;
-        }
-
-        .info-label {
-            font-weight: bold;
-            display: inline-block;
-            width: 100px;
-        }
-
-        /* IP adresa styl */
-        .ip-box {
-            background-color: #1a2e38;
-            padding: 10px 15px;
-            border-radius: 4px;
-            display: inline-block;
-            margin-top: 10px;
-            border: 1px solid #253d4a;
-        }
-
-        /* Seznam pravidel */
-        ul {
-            list-style-type: none;
-            padding-left: 10px;
-        }
-
-        ul li::before {
-            content: "•";
-            color: #00d2ff;
-            font-weight: bold;
-            display: inline-block; 
-            width: 1em;
-            margin-left: -1em;
-        }
-
-        /* Tlačítko */
-        .btn-contact {
-            background-color: #00d2ff;
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            margin-top: 10px;
-        }
-
-        .btn-contact:hover {
-            background-color: #00b8e6;
-        }
-
-        /* Patička */
-        footer {
-            text-align: center;
-            padding: 20px;
-            font-size: 0.8rem;
-            color: #555;
-            border-top: 1px solid #1a2a33;
-            margin-top: 40px;
-        }
+        .close-btn { color: #888; float: right; cursor: pointer; font-size: 20px; }
     </style>
 </head>
 <body>
@@ -146,11 +53,10 @@
         <a href="#">Domů</a>
         <a href="#">Server</a>
         <a href="#">Pravidla</a>
-        <a href="#">Kontakt</a>
+        <a onclick="openLogin()">Přihlásit se</a>
     </nav>
 
     <div class="container">
-        
         <section>
             <h2>O serveru</h2>
             <p>Toto je jednoduchý herní server hostovaný přes Fakahedu. Připoj se k nám a užij si zábavu s ostatními hráči!</p>
@@ -158,11 +64,10 @@
 
         <section>
             <h2>Informace o serveru</h2>
-            <p><span class="info-label">Hra:</span> Factorio (možná budeme rozžiřovat) </p>
-            <p><span class="info-label">Verze:</span> Bez Dlc</p>
-            <p><span class="info-label">IP adresa: 185.180.2.32:27861
- </span></p>
-            <div class="ip-box">example.fakaheda.eu</div>
+            <p><span class="info-label">Hra:</span> Factorio (možná budeme rozšiřovat)</p>
+            <p><span class="info-label">Verze:</span> Bez DLC</p>
+            <p><span class="info-label">IP adresa:</span></p>
+            <div class="ip-box">185.180.2.32:27861</div>
         </section>
 
         <section>
@@ -181,12 +86,49 @@
             <p><strong>Email:</strong> kontakt@tvujserver.cz</p>
             <button class="btn-contact">Kontaktovat</button>
         </section>
+    </div>
 
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeLogin()">&times;</span>
+            <h2>Přihlášení</h2>
+            <input type="text" id="username" placeholder="Uživatelské jméno">
+            <input type="password" id="password" placeholder="Heslo">
+            <button class="btn-login" onclick="loginAction()">Vstoupit</button>
+            <p id="errorMsg" style="color: red; font-size: 12px; display: none;">Chybné údaje!</p>
+        </div>
     </div>
 
     <footer>
         © 2026 Můj herní server | Hosting: Fakaheda
     </footer>
+
+    <script>
+        function openLogin() {
+            document.getElementById("loginModal").style.display = "block";
+        }
+        function closeLogin() {
+            document.getElementById("loginModal").style.display = "none";
+        }
+        function loginAction() {
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+            
+            // Ukázka: Pokud je jméno "admin" a heslo "1234"
+            if(user === "admin" && pass === "1234") {
+                alert("Úspěšně přihlášen!");
+                closeLogin();
+            } else {
+                document.getElementById("errorMsg").style.display = "block";
+            }
+        }
+        // Zavření okna kliknutím mimo něj
+        window.onclick = function(event) {
+            if (event.target == document.getElementById("loginModal")) {
+                closeLogin();
+            }
+        }
+    </script>
 
 </body>
 </html>
