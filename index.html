@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hisikův Server Portal - Live</title>
+    <title>Hisikův Server Portal - Banner System</title>
     <style>
         body { margin: 0; padding: 0; font-family: sans-serif; background-color: #0d1b24; color: white; }
         header { text-align: center; padding: 30px; background-color: #0a141a; border-bottom: 2px solid #00d2ff; }
@@ -11,15 +11,19 @@
         nav a { color: #00d2ff; text-decoration: none; font-weight: bold; cursor: pointer; }
         .container { max-width: 900px; margin: 20px auto; padding: 20px; }
         
-        #server-list-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
-        .card { background: #12232c; padding: 20px; border-radius: 10px; border: 1px solid #1a2a33; transition: 0.3s; cursor: pointer; position: relative; }
-        .card:hover { border-color: #00d2ff; transform: translateY(-3px); }
+        #server-list-container { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px; }
+        .card { background: #12232c; padding: 20px; border-radius: 10px; border: 1px solid #1a2a33; transition: 0.3s; cursor: pointer; }
+        .card:hover { border-color: #00d2ff; }
         
-        /* STATUS INDIKÁTORY */
-        .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; background: #555; }
-        .online-dot { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
-        .offline-dot { background: #ff4d4d; }
-        .player-count { font-size: 0.85rem; color: #aaa; margin-top: 5px; }
+        /* Styl pro banner z Fakahedy */
+        .fakaheda-banner {
+            width: 100%;
+            max-width: 550px;
+            height: auto;
+            border-radius: 5px;
+            margin-top: 10px;
+            border: 1px solid #333;
+        }
 
         #admin-panel, #server-detail { display: none; }
         
@@ -68,7 +72,7 @@
         <div class="card" style="margin-top:20px; cursor:default;">
             <h2 id="det-name" style="color:#00d2ff"></h2>
             <p id="det-desc"></p>
-            <div style="background: #0a141a; padding: 15px; border-radius: 5px;">IP: <strong id="det-ip" style="color: #ffcc00;"></strong></div>
+            <div id="det-banner-box"></div> <div style="background: #0a141a; padding: 15px; border-radius: 5px; margin-top:15px;">IP: <strong id="det-ip" style="color: #ffcc00;"></strong></div>
         </div>
     </div>
 
@@ -112,9 +116,9 @@
     <div class="modal-content">
         <h3>Upravit server</h3>
         <input type="hidden" id="edit-index">
-        <input type="text" id="edit-name" placeholder="Název">
-        <input type="text" id="edit-ip" placeholder="IP">
-        <textarea id="edit-desc" placeholder="Popis"></textarea>
+        <input type="text" id="edit-name">
+        <input type="text" id="edit-ip">
+        <textarea id="edit-desc"></textarea>
         <button onclick="handleSaveEdit()" style="width: 100%;">ULOŽIT ZMĚNY</button>
         <button onclick="uiCloseModal('editModal')" style="background:#555; color:white; width:100%; margin-left:0;">ZAVŘÍT</button>
     </div>
@@ -124,44 +128,8 @@
     const ADMINS = { "hisik": "5j6mavv1", "kamos": "heslo123" };
     let isAdmin = false;
     let servers = JSON.parse(localStorage.getItem('myServers')) || [
-        { name: 'Factorio Server', ip: '185.180.2.32:27861', desc: 'Hlavní server.' }
+        { name: 'Kozlova Faktorka', ip: '185.180.2.32:27861', desc: 'Hlavní server.' }
     ];
-
-    // Funkce pro získání stavu přes CORS PROXY (Aktualizace každých 10s)
-    async function updateServerStatuses() {
-        for (const srv of servers) {
-            try {
-                // Používáme AllOrigins proxy pro obejití CORS restrikcí
-                const proxyUrl = "https://api.allorigins.win/get?url=";
-                const targetUrl = encodeURIComponent(`https://api.fakaheda.eu/v1/status/${srv.ip}`);
-                
-                const response = await fetch(proxyUrl + targetUrl);
-                if (!response.ok) throw new Error();
-                
-                const wrapper = await response.json();
-                const data = JSON.parse(wrapper.contents);
-                
-                const safeIp = srv.ip.replace(/[:.]/g, '-');
-                const dot = document.getElementById(`dot-${safeIp}`);
-                const txt = document.getElementById(`players-${safeIp}`);
-                
-                if (dot && txt) {
-                    if (data.status === "online") {
-                        dot.className = "status-dot online-dot";
-                        txt.innerText = `Hráči: ${data.players} / ${data.slots}`;
-                    } else {
-                        dot.className = "status-dot offline-dot";
-                        txt.innerText = "Server je Offline";
-                    }
-                }
-            } catch (e) {
-                console.error("API Error pro " + srv.ip);
-                const safeIp = srv.ip.replace(/[:.]/g, '-');
-                const txt = document.getElementById(`players-${safeIp}`);
-                if (txt) txt.innerText = "Stav nedostupný (API)";
-            }
-        }
-    }
 
     function renderServers() {
         const container = document.getElementById('server-list-container');
@@ -169,37 +137,41 @@
         container.innerHTML = '';
         
         servers.forEach((srv, index) => {
-            const safeIp = srv.ip.replace(/[:.]/g, '-');
             const card = document.createElement('div');
             card.className = 'card';
             card.onclick = () => uiShowDetail(srv.name, srv.ip, srv.desc);
             
+            // Tady vkládáme přímo banner z Fakahedy pomocí IP adresy
             card.innerHTML = `
-                <div style="display:flex; align-items:center;">
-                    <span id="dot-${safeIp}" class="status-dot"></span>
-                    <h3 style="margin:0;">${srv.name}</h3>
-                </div>
-                <div style="color:#00d2ff; font-family:monospace; margin-top:5px;">${srv.ip}</div>
-                <div id="players-${safeIp}" class="player-count">Zjišťování stavu...</div>
+                <h3 style="margin-top:0;">${srv.name}</h3>
+                <img class="fakaheda-banner" src="http://query.fakaheda.eu/${srv.ip}.jpg?size=550x100" alt="Server status">
+                <div style="color:#00d2ff; font-family:monospace; margin-top:10px;">IP: ${srv.ip}</div>
             `;
             
             if(isAdmin) {
                 const controls = document.createElement('div');
                 controls.style.marginTop = "15px";
                 const editBtn = document.createElement('button');
-                editBtn.innerText = 'Upravit';
-                editBtn.className = 'btn-edit';
+                editBtn.innerText = 'Upravit'; editBtn.className = 'btn-edit';
                 editBtn.onclick = (e) => { e.stopPropagation(); uiOpenEdit(index); };
                 const delBtn = document.createElement('button');
-                delBtn.innerText = 'Smazat';
-                delBtn.className = 'btn-delete';
+                delBtn.innerText = 'Smazat'; delBtn.className = 'btn-delete';
                 delBtn.onclick = (e) => { e.stopPropagation(); handleDelete(index); };
                 controls.append(editBtn, delBtn);
                 card.appendChild(controls);
             }
             container.appendChild(card);
         });
-        updateServerStatuses();
+    }
+
+    // Funkce pro zobrazení detailu (přidá banner i tam)
+    function uiShowDetail(name, ip, desc) {
+        document.getElementById('server-list').style.display = 'none';
+        document.getElementById('server-detail').style.display = 'block';
+        document.getElementById('det-name').innerText = name;
+        document.getElementById('det-ip').innerText = ip;
+        document.getElementById('det-desc').innerText = desc || 'Bez popisu.';
+        document.getElementById('det-banner-box').innerHTML = `<img class="fakaheda-banner" src="http://query.fakaheda.eu/${ip}.jpg?size=550x100">`;
     }
 
     function uiToggleAdmin() {
@@ -236,8 +208,6 @@
             document.getElementById('add-name').value = ''; 
             document.getElementById('add-ip').value = ''; 
             document.getElementById('add-desc').value = '';
-        } else {
-            alert("Vyplň název a IP!");
         }
     }
 
@@ -279,20 +249,10 @@
         document.getElementById('admin-panel').style.display = 'none';
     }
 
-    function uiShowDetail(name, ip, desc) {
-        document.getElementById('server-list').style.display = 'none';
-        document.getElementById('server-detail').style.display = 'block';
-        document.getElementById('det-name').innerText = name;
-        document.getElementById('det-ip').innerText = ip;
-        document.getElementById('det-desc').innerText = desc || 'Bez popisu.';
-    }
-
     function uiCloseModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // Spuštění
+    // Start
     renderServers();
-    // Interval nastaven na 10 sekund (10000 ms)
-    setInterval(updateServerStatuses, 10000);
 </script>
 </body>
 </html>
