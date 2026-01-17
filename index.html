@@ -19,6 +19,12 @@
         
         #admin-panel, #server-detail { display: none; }
         
+        /* SEZCE KONTAKT STYL */
+        .contact-section { margin-top: 50px; padding: 30px; background: #0a141a; border-radius: 10px; border: 1px solid #1a2a33; text-align: center; }
+        .contact-grid { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-top: 20px; }
+        .contact-item h4 { color: #00d2ff; margin-bottom: 5px; }
+        .contact-item p { margin: 0; color: #ccc; }
+
         /* Modály */
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
         .modal-content { background: #12232c; margin: 10% auto; padding: 30px; width: 350px; border: 2px solid #00d2ff; border-radius: 10px; text-align: center; }
@@ -46,6 +52,25 @@
     <div id="server-list">
         <h2>Aktuální servery</h2>
         <div id="server-list-container"></div>
+
+        <div class="contact-section">
+            <h3>📩 Kontaktujte nás</h3>
+            <p>Máte dotaz nebo problém? Kontakt na Majitele : hisik23418</p>
+            <div class="contact-grid">
+                <div class="contact-item">
+                    <h4>Discord</h4>
+                    <p>discord.gg/vaseserverinfo</p>
+                </div>
+                <div class="contact-item">
+                    <h4>Email</h4>
+                    <p>Hisnoster@gmail.com</p>
+                </div>
+                <div class="contact-item">
+                    <h4>Majitel</h4>
+                    <p>Hisik</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="server-detail">
@@ -114,7 +139,7 @@
     let isAdmin = false;
 
     let servers = JSON.parse(localStorage.getItem('myServers')) || [
-        { name: 'Factorio Server', ip: '185.180.2.32:27861', desc: 'Výchozí server.' }
+        { name: 'Factorio Server', ip: '185.180.2.32:27861', desc: 'Výchozí server pro Hisikovu Faktorku.' }
     ];
 
     function renderServers() {
@@ -129,17 +154,14 @@
             if(isAdmin) {
                 const controls = document.createElement('div');
                 controls.style.marginTop = "15px";
-                
                 const editBtn = document.createElement('button');
                 editBtn.innerText = 'Upravit';
                 editBtn.className = 'btn-edit';
                 editBtn.onclick = (e) => { e.stopPropagation(); uiOpenEdit(index); };
-                
                 const delBtn = document.createElement('button');
                 delBtn.innerText = 'Smazat';
                 delBtn.className = 'btn-delete';
                 delBtn.onclick = (e) => { e.stopPropagation(); handleDelete(index); };
-                
                 controls.append(editBtn, delBtn);
                 card.appendChild(controls);
             }
