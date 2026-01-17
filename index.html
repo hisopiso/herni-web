@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hisikův Server Portal - Fixed</title>
+    <title>Hisikův Server Portal - Live</title>
     <style>
         body { margin: 0; padding: 0; font-family: sans-serif; background-color: #0d1b24; color: white; }
         header { text-align: center; padding: 30px; background-color: #0a141a; border-bottom: 2px solid #00d2ff; }
@@ -15,6 +15,7 @@
         .card { background: #12232c; padding: 20px; border-radius: 10px; border: 1px solid #1a2a33; transition: 0.3s; cursor: pointer; position: relative; }
         .card:hover { border-color: #00d2ff; transform: translateY(-3px); }
         
+        /* STATUS INDIKÁTORY */
         .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; background: #555; }
         .online-dot { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
         .offline-dot { background: #ff4d4d; }
@@ -126,17 +127,23 @@
         { name: 'Factorio Server', ip: '185.180.2.32:27861', desc: 'Hlavní server.' }
     ];
 
-    // Funkce pro získání stavu - OPRAVENO
+    // Funkce pro získání stavu přes CORS PROXY (Aktualizace každých 10s)
     async function updateServerStatuses() {
         for (const srv of servers) {
             try {
-                // Používáme Fakaheda API (bezpečnostní poznámka: může vyžadovat CORS proxy pokud Fakaheda blokuje webové prohlížeče)
-                const response = await fetch(`https://api.fakaheda.eu/v1/status/${srv.ip}`);
+                // Používáme AllOrigins proxy pro obejití CORS restrikcí
+                const proxyUrl = "https://api.allorigins.win/get?url=";
+                const targetUrl = encodeURIComponent(`https://api.fakaheda.eu/v1/status/${srv.ip}`);
+                
+                const response = await fetch(proxyUrl + targetUrl);
                 if (!response.ok) throw new Error();
                 
-                const data = await response.json();
-                const dot = document.getElementById(`dot-${srv.ip.replace(/[:.]/g, '-')}`);
-                const txt = document.getElementById(`players-${srv.ip.replace(/[:.]/g, '-')}`);
+                const wrapper = await response.json();
+                const data = JSON.parse(wrapper.contents);
+                
+                const safeIp = srv.ip.replace(/[:.]/g, '-');
+                const dot = document.getElementById(`dot-${safeIp}`);
+                const txt = document.getElementById(`players-${safeIp}`);
                 
                 if (dot && txt) {
                     if (data.status === "online") {
@@ -148,8 +155,9 @@
                     }
                 }
             } catch (e) {
-                // Pokud API selže, aspoň vypíšeme chybu do konzole, ale web nezamrzne
-                const txt = document.getElementById(`players-${srv.ip.replace(/[:.]/g, '-')}`);
+                console.error("API Error pro " + srv.ip);
+                const safeIp = srv.ip.replace(/[:.]/g, '-');
+                const txt = document.getElementById(`players-${safeIp}`);
                 if (txt) txt.innerText = "Stav nedostupný (API)";
             }
         }
@@ -161,7 +169,7 @@
         container.innerHTML = '';
         
         servers.forEach((srv, index) => {
-            const safeIp = srv.ip.replace(/[:.]/g, '-'); // Vytvoří bezpečné ID bez teček a dvojteček
+            const safeIp = srv.ip.replace(/[:.]/g, '-');
             const card = document.createElement('div');
             card.className = 'card';
             card.onclick = () => uiShowDetail(srv.name, srv.ip, srv.desc);
@@ -178,17 +186,14 @@
             if(isAdmin) {
                 const controls = document.createElement('div');
                 controls.style.marginTop = "15px";
-                
                 const editBtn = document.createElement('button');
                 editBtn.innerText = 'Upravit';
                 editBtn.className = 'btn-edit';
                 editBtn.onclick = (e) => { e.stopPropagation(); uiOpenEdit(index); };
-                
                 const delBtn = document.createElement('button');
                 delBtn.innerText = 'Smazat';
                 delBtn.className = 'btn-delete';
                 delBtn.onclick = (e) => { e.stopPropagation(); handleDelete(index); };
-                
                 controls.append(editBtn, delBtn);
                 card.appendChild(controls);
             }
@@ -286,7 +291,8 @@
 
     // Spuštění
     renderServers();
-    setInterval(updateServerStatuses, 60000);
+    // Interval nastaven na 10 sekund (10000 ms)
+    setInterval(updateServerStatuses, 10000);
 </script>
 </body>
 </html>
