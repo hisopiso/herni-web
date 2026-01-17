@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hisikův Server Portal - Full Admin</title>
+    <title>Hisikův Server Portal - Pro Edition</title>
     <style>
         body { margin: 0; padding: 0; font-family: sans-serif; background-color: #0d1b24; color: white; }
         header { text-align: center; padding: 30px; background-color: #0a141a; border-bottom: 2px solid #00d2ff; }
-        nav { background-color: #0a141a; text-align: center; padding: 15px; border-bottom: 1px solid #1a2a33; display: flex; justify-content: center; gap: 20px; }
-        nav a { color: #00d2ff; text-decoration: none; font-weight: bold; cursor: pointer; }
-        .container { max-width: 900px; margin: 20px auto; padding: 20px; }
+        nav { background-color: #0a141a; text-align: center; padding: 15px; border-bottom: 1px solid #1a2a33; display: flex; justify-content: center; gap: 25px; }
+        nav a { color: #00d2ff; text-decoration: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        nav a:hover { color: #fff; text-shadow: 0 0 10px #00d2ff; }
         
+        .container { max-width: 900px; margin: 20px auto; padding: 20px; }
         #server-list-container { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px; }
         .card { background: #12232c; padding: 20px; border-radius: 10px; border: 1px solid #1a2a33; position: relative; }
         
@@ -34,13 +35,16 @@
             font-size: 0.75rem; font-weight: bold; display: none; z-index: 10;
         }
 
-        #admin-panel, #server-detail { display: none; }
+        #admin-panel, #server-detail, #contact-page { display: none; }
         
         input, textarea { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; background: #0a141a; color: white; border: 1px solid #333; border-radius: 5px; }
-        .admin-btn { background: #00d2ff; color: black; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; margin-right: 5px; margin-top: 5px; }
+        .admin-btn { background: #00d2ff; color: black; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; margin-right: 5px; margin-top: 5px; transition: 0.2s; }
+        .admin-btn:hover { background: #fff; }
         
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
         .modal-content { background: #12232c; margin: 5% auto; padding: 30px; width: 400px; border: 2px solid #00d2ff; border-radius: 10px; text-align: center; }
+
+        .contact-card { background: #0a141a; padding: 30px; border-radius: 10px; border-left: 5px solid #00d2ff; line-height: 2; }
     </style>
 </head>
 <body>
@@ -50,14 +54,26 @@
 </header>
 
 <nav>
-    <a onclick="uiShowList()">Domů / Servery</a>
-    <a id="nav-admin" onclick="uiToggleAdmin()">Administrace</a>
+    <a onclick="uiShowList()">🏠 Servery</a>
+    <a onclick="uiShowContact()">📩 Kontakt</a>
+    <a id="nav-admin" onclick="uiToggleAdmin()">🔐 Administrace</a>
 </nav>
 
 <div class="container">
     <div id="server-list">
         <h2>Aktuální servery</h2>
         <div id="server-list-container"></div>
+    </div>
+
+    <div id="contact-page">
+        <h2>Kontakt na vedení</h2>
+        <div class="contact-card">
+            <p><strong>Discord:</strong> discord.gg/vaseserverinfo</p>
+            <p><strong>Email:</strong> podpora@server.cz</p>
+            <p><strong>Majitel:</strong> Hisik</p>
+            <p><strong>Dostupnost:</strong> Po-Ne 9:00 - 22:00</p>
+        </div>
+        <button class="admin-btn" style="margin-top:20px;" onclick="uiShowList()">Zpět domů</button>
     </div>
 
     <div id="server-detail">
@@ -80,36 +96,38 @@
             <h2>🔐 Administrace</h2>
             <button class="admin-btn" onclick="location.reload()" style="background:#ff4d4d; color:white;">Odhlásit se</button>
         </div>
-        <div class="card">
+        <div class="card" onkeydown="if(event.key === 'Enter') handleCreateServer()">
             <h3>➕ Přidat nový server</h3>
             <input type="text" id="add-name" placeholder="Název serveru">
             <input type="text" id="add-ip" placeholder="IP:Port">
             <input type="text" id="add-pass" placeholder="Heslo (volitelné)">
             <textarea id="add-desc" placeholder="Popis..."></textarea>
+            <p style="font-size: 0.8rem; color: #777;">(Lze potvrdit Enterem)</p>
             <button class="admin-btn" onclick="handleCreateServer()" style="width: 100%;">VYTVOŘIT</button>
         </div>
     </div>
 </div>
 
 <div id="editModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" onkeydown="if(event.key === 'Enter') handleSaveEdit()">
         <h3>Upravit server</h3>
         <input type="hidden" id="edit-index">
-        <input type="text" id="edit-name" placeholder="Název">
-        <input type="text" id="edit-ip" placeholder="IP:Port">
-        <input type="text" id="edit-pass" placeholder="Heslo">
-        <textarea id="edit-desc" placeholder="Popis"></textarea>
-        <button class="admin-btn" onclick="handleSaveEdit()">ULOŽIT ZMĚNY</button>
-        <button class="admin-btn" style="background:#555; color:white;" onclick="uiCloseModal('editModal')">ZRUŠIT</button>
+        <input type="text" id="edit-name">
+        <input type="text" id="edit-ip">
+        <input type="text" id="edit-pass">
+        <textarea id="edit-desc"></textarea>
+        <button class="admin-btn" onclick="handleSaveEdit()">ULOŽIT</button>
+        <button class="admin-btn" style="background:#555; color:white;" onclick="uiCloseModal('editModal')">ZAVŘÍT</button>
     </div>
 </div>
 
 <div id="loginModal" class="modal">
-    <div class="modal-content">
-        <h3>Přihlášení</h3>
-        <input type="text" id="u" placeholder="Jméno">
+    <div class="modal-content" onkeydown="if(event.key === 'Enter') handleLogin()">
+        <h3>Přihlášení správce</h3>
+        <input type="text" id="u" placeholder="Uživatel" autofocus>
         <input type="password" id="p" placeholder="Heslo">
-        <button class="admin-btn" onclick="handleLogin()">VSTOUPIT</button>
+        <button class="admin-btn" onclick="handleLogin()">VSTOUPIT (Enter)</button>
+        <p onclick="uiCloseModal('loginModal')" style="cursor:pointer; color:#777; margin-top:10px;">Zavřít</p>
     </div>
 </div>
 
@@ -117,7 +135,7 @@
     const ADMINS = { "hisik": "5j6mavv1" };
     let isAdmin = false;
     let servers = JSON.parse(localStorage.getItem('myServers')) || [
-        { name: 'Kozlova Faktorka', ip: '185.180.2.32:27861', desc: 'Factorio server.', pass: 'heslo123' }
+        { name: 'Kozlova Faktorka', ip: '185.180.2.32:27861', desc: 'Vítej na serveru!', pass: '1234' }
     ];
 
     function copyToClipboard(text, element) {
@@ -156,6 +174,17 @@
         });
     }
 
+    function handleLogin() {
+        const user = document.getElementById('u').value;
+        const pass = document.getElementById('p').value;
+        if(ADMINS[user] === pass) {
+            isAdmin = true;
+            uiCloseModal('loginModal');
+            document.getElementById('nav-admin').innerText = "🛠 Admin Panel";
+            uiShowList();
+        } else { alert("Špatné údaje!"); }
+    }
+
     function uiOpenEdit(index) {
         const srv = servers[index];
         document.getElementById('edit-index').value = index;
@@ -180,7 +209,7 @@
 
     function uiShowDetail(index) {
         const srv = servers[index];
-        document.getElementById('server-list').style.display = 'none';
+        uiHideAll();
         document.getElementById('server-detail').style.display = 'block';
         document.getElementById('det-name').innerText = srv.name;
         document.getElementById('det-ip').innerText = srv.ip;
@@ -193,15 +222,6 @@
         document.getElementById('det-banner-box').innerHTML = `<img class="fakaheda-banner" src="http://query.fakaheda.eu/${srv.ip}.jpg?size=550x100">`;
     }
 
-    function handleLogin() {
-        if(ADMINS[document.getElementById('u').value] === document.getElementById('p').value) {
-            isAdmin = true;
-            uiCloseModal('loginModal');
-            document.getElementById('nav-admin').innerText = "🔐 Administrace";
-            uiShowList();
-        } else { alert("Chyba!"); }
-    }
-
     function handleCreateServer() {
         const name = document.getElementById('add-name').value;
         const ip = document.getElementById('add-ip').value;
@@ -209,13 +229,25 @@
             servers.push({ name, ip, pass: document.getElementById('add-pass').value, desc: document.getElementById('add-desc').value });
             saveAndRefresh();
             document.getElementById('add-name').value = ''; document.getElementById('add-ip').value = '';
+            document.getElementById('add-pass').value = ''; document.getElementById('add-desc').value = '';
         }
     }
 
     function handleDelete(index) { if(confirm('Smazat?')) { servers.splice(index, 1); saveAndRefresh(); } }
     function saveAndRefresh() { localStorage.setItem('myServers', JSON.stringify(servers)); renderServers(); }
-    function uiShowList() { document.getElementById('server-list').style.display = 'block'; document.getElementById('server-detail').style.display = 'none'; document.getElementById('admin-panel').style.display = 'none'; renderServers(); }
-    function uiToggleAdmin() { isAdmin ? (document.getElementById('server-list').style.display = 'none', document.getElementById('admin-panel').style.display = 'block') : document.getElementById('loginModal').style.display = 'block'; }
+    
+    function uiHideAll() {
+        ['server-list', 'server-detail', 'admin-panel', 'contact-page'].forEach(id => {
+            document.getElementById(id).style.display = 'none';
+        });
+    }
+
+    function uiShowList() { uiHideAll(); document.getElementById('server-list').style.display = 'block'; renderServers(); }
+    function uiShowContact() { uiHideAll(); document.getElementById('contact-page').style.display = 'block'; }
+    function uiToggleAdmin() { 
+        if(isAdmin) { uiHideAll(); document.getElementById('admin-panel').style.display = 'block'; } 
+        else { document.getElementById('loginModal').style.display = 'block'; }
+    }
     function uiCloseModal(id) { document.getElementById(id).style.display = 'none'; }
 
     renderServers();
