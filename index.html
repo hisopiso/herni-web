@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hisikova Faktorka - Rozcestník</title>
+    <title>Hisikova Faktorka - Admin System</title>
     <style>
+        /* Ponecháváme předchozí styly a přidáváme nové pro Admin Panel */
         body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: #0d1b24; color: white; }
         header { text-align: center; padding: 40px; background-color: #0a141a; border-bottom: 2px solid #00d2ff; }
         nav { background-color: #0a141a; text-align: center; padding: 15px; }
@@ -12,92 +13,74 @@
 
         .container { max-width: 1000px; margin: 30px auto; padding: 20px; }
 
-        /* --- SEZNAM SERVERŮ (GRID) --- */
-        .server-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-        }
+        /* Seznam serverů */
+        .server-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .server-card { background-color: #12232c; border: 1px solid #1a2a33; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; }
+        .server-card:hover { border-color: #00d2ff; }
 
-        .server-card {
-            background-color: #12232c;
-            border: 1px solid #1a2a33;
-            border-radius: 10px;
+        /* Skryté sekce */
+        #server-detail, #admin-panel { display: none; }
+
+        /* ADMIN PANEL STYL */
+        .admin-box {
+            background-color: #1a2e38;
+            border: 2px dashed #00d2ff;
             padding: 20px;
-            text-align: center;
-            transition: transform 0.3s, border-color 0.3s;
-            cursor: pointer;
+            border-radius: 10px;
+            margin-top: 20px;
         }
+        .secret-info { color: #ffcc00; font-weight: bold; background: #222; padding: 10px; border-radius: 5px; }
 
-        .server-card:hover {
-            transform: translateY(-5px);
-            border-color: #00d2ff;
-            background-color: #162c38;
-        }
-
-        .server-card h3 { color: #00d2ff; margin-top: 0; }
-        .status-online { color: #00ff88; font-size: 0.8rem; font-weight: bold; }
-
-        /* --- DETAIL SERVERU (SCHOVANÝ) --- */
-        #server-detail { display: none; }
-        .back-btn {
-            background: none; border: 1px solid #00d2ff; color: #00d2ff;
-            padding: 8px 15px; cursor: pointer; border-radius: 5px; margin-bottom: 20px;
-        }
-        .back-btn:hover { background: #00d2ff; color: black; }
-
-        .detail-content { background-color: #12232c; padding: 30px; border-radius: 10px; }
-        .ip-box { background: #0a141a; padding: 15px; border-radius: 5px; border: 1px solid #1a2a33; color: #00d2ff; font-family: monospace; font-size: 1.2rem; }
-
-        /* Login Modal (stejný jako minule) */
-        .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
-        .modal-content { background: #12232c; margin: 15% auto; padding: 25px; border: 2px solid #00d2ff; width: 300px; border-radius: 10px; text-align: center; }
+        /* Modal Login */
+        .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
+        .modal-content { background: #12232c; margin: 10% auto; padding: 30px; border: 2px solid #00d2ff; width: 320px; border-radius: 10px; text-align: center; }
+        .modal-content input { width: 100%; padding: 12px; margin: 10px 0; background: #0a141a; border: 1px solid #333; color: white; box-sizing: border-box; }
+        .btn-login { width: 100%; padding: 12px; background: #00d2ff; border: none; font-weight: bold; cursor: pointer; color: black; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1 id="main-title">Hisikova Faktorka</h1>
-    <p>Vyber si server a pojď hrát</p>
+    <h1>Hisikova Faktorka</h1>
+    <p>Správa serverů a přihlášení</p>
 </header>
 
 <nav>
     <a onclick="showList()">Domů / Servery</a>
-    <a onclick="openLogin()">Administrace</a>
+    <a id="admin-nav-link" onclick="openLogin()">Administrace (Zamčeno)</a>
 </nav>
 
 <div class="container">
     
     <div id="server-list">
-        <h2>Aktuální servery</h2>
+        <h2>Vyberte server</h2>
         <div class="server-grid">
-            
-            <div class="server-card" onclick="showDetail('Factorio Server', '185.180.2.32:27861', 'Bez DLC, klasická továrna pro každého.', 'Verze 1.1')">
+            <div class="server-card" onclick="showDetail('Factorio', '185.180.2.32:27861', 'Hlavní server faktorky.', '1.1')">
                 <h3>Factorio</h3>
-                <p>Klasická Faktorka</p>
-                <span class="status-online">● ONLINE</span>
+                <p>Klikni pro více info</p>
             </div>
-
-            <div class="server-card" onclick="showDetail('Minecraft Survival', '123.456.78.9:25565', 'Pohodový survival s komunitou.', 'Verze 1.20.4')">
-                <h3>Minecraft</h3>
-                <p>Survival Svět</p>
-                <span class="status-online">● ONLINE</span>
-            </div>
-
-            </div>
+        </div>
     </div>
 
     <div id="server-detail">
-        <button class="back-btn" onclick="showList()">← Zpět na seznam</button>
-        <div class="detail-content">
-            <h2 id="det-name" style="color: #00d2ff;">Název serveru</h2>
-            <p id="det-desc">Popis...</p>
-            <hr style="border: 0; border-top: 1px solid #1a2a33; margin: 20px 0;">
-            <p><strong>Verze:</strong> <span id="det-ver"></span></p>
-            <p><strong>IP Adresa:</strong></p>
-            <div class="ip-box" id="det-ip">0.0.0.0</div>
-            <br>
-            <button class="back-btn" style="background: #00d2ff; color: black; font-weight: bold;">PŘIPOJIT SE</button>
+        <button onclick="showList()">← Zpět</button>
+        <div style="background:#12232c; padding:20px; margin-top:20px; border-radius:10px;">
+            <h2 id="det-name"></h2>
+            <p id="det-desc"></p>
+            <p><strong>IP:</strong> <span id="det-ip" style="color:#00d2ff"></span></p>
+        </div>
+    </div>
+
+    <div id="admin-panel">
+        <h2 style="color: #00d2ff;">🔐 Administrační Panel</h2>
+        <div class="admin-box">
+            <p>Vítejte, pane správce. Zde jsou skryté údaje:</p>
+            <ul>
+                <li>RCON Heslo: <span class="secret-info">MojeTajneHeslo123</span></li>
+                <li>FTP Login: <span class="secret-info">user_fakaheda_45</span></li>
+                <li>Dnešní výdělek: <span class="secret-info">0 Kč (Všichni hrají zdarma)</span></li>
+            </ul>
+            <button onclick="logout()" style="background:red; color:white; border:none; padding:10px; cursor:pointer; border-radius:5px;">Odhlásit se</button>
         </div>
     </div>
 
@@ -105,35 +88,65 @@
 
 <div id="loginModal" class="modal">
     <div class="modal-content">
-        <h2 style="color: #00d2ff;">Login</h2>
-        <input type="text" placeholder="Jméno" style="width:90%; padding:10px; margin:5px; background:#0a141a; border:1px solid #333; color:white;">
-        <input type="password" placeholder="Heslo" style="width:90%; padding:10px; margin:5px; background:#0a141a; border:1px solid #333; color:white;">
-        <button onclick="closeLogin()" style="width:100%; padding:10px; margin-top:10px; background:#00d2ff; border:none; font-weight:bold; cursor:pointer;">VSTOUPIT</button>
-        <p onclick="closeLogin()" style="cursor:pointer; color:#888; font-size:12px; margin-top:10px;">Zavřít</p>
+        <h2 style="color: #00d2ff;">Login do administrace</h2>
+        <input type="text" id="userInp" placeholder="Uživatelské jméno">
+        <input type="password" id="passInp" placeholder="Heslo">
+        <button class="btn-login" onclick="checkLogin()">PŘIHLÁSIT SE</button>
+        <p id="err" style="color:red; display:none; margin-top:10px;">Špatné jméno nebo heslo!</p>
+        <p onclick="closeLogin()" style="cursor:pointer; color:#555; margin-top:15px;">Zrušit</p>
     </div>
 </div>
 
 <script>
-    // Funkce pro zobrazení detailu
-    function showDetail(name, ip, desc, ver) {
-        document.getElementById('server-list').style.display = 'none';
-        document.getElementById('server-detail').style.display = 'block';
-        
-        document.getElementById('det-name').innerText = name;
-        document.getElementById('det-ip').innerText = ip;
-        document.getElementById('det-desc').innerText = desc;
-        document.getElementById('det-ver').innerText = ver;
-        
-        window.scrollTo(0,0);
+    // --- TADY SI NASTAV SVÉ ÚDAJE ---
+    const ADMIN_USER = "hisik";
+    const ADMIN_PASS = "faktorka2026";
+
+    function checkLogin() {
+        const u = document.getElementById("userInp").value;
+        const p = document.getElementById("passInp").value;
+
+        if(u === ADMIN_USER && p === ADMIN_PASS) {
+            // Úspěch
+            document.getElementById("loginModal").style.display = "none";
+            showAdmin();
+            alert("Vítej zpět, " + ADMIN_USER);
+        } else {
+            document.getElementById("err").style.display = "block";
+        }
     }
 
-    // Funkce pro návrat na seznam
+    function showAdmin() {
+        // Schová všechno ostatní a ukáže admin panel
+        document.getElementById("server-list").style.display = "none";
+        document.getElementById("server-detail").style.display = "none";
+        document.getElementById("admin-panel").style.display = "block";
+        
+        // Změní text v menu
+        document.getElementById("admin-nav-link").innerText = "Administrace (Přihlášen)";
+        document.getElementById("admin-nav-link").onclick = function() { showAdmin(); };
+    }
+
+    function logout() {
+        location.reload(); // Nejjednodušší způsob jak se odhlásit a vše resetovat
+    }
+
+    // Pomocné funkce pro navigaci
     function showList() {
-        document.getElementById('server-list').style.display = 'block';
-        document.getElementById('server-detail').style.display = 'none';
+        document.getElementById("server-list").style.display = "block";
+        document.getElementById("server-detail").style.display = "none";
+        document.getElementById("admin-panel").style.display = "none";
     }
 
-    // Login funkce
+    function showDetail(name, ip, desc, ver) {
+        document.getElementById("server-list").style.display = "none";
+        document.getElementById("server-detail").style.display = "block";
+        document.getElementById("admin-panel").style.display = "none";
+        document.getElementById("det-name").innerText = name;
+        document.getElementById("det-ip").innerText = ip;
+        document.getElementById("det-desc").innerText = desc;
+    }
+
     function openLogin() { document.getElementById("loginModal").style.display = "block"; }
     function closeLogin() { document.getElementById("loginModal").style.display = "none"; }
 </script>
