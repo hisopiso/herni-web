@@ -2,132 +2,190 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <title>Můj herní server</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Můj herní server</title>
     <style>
+        /* Základní nastavení */
         body {
             margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d1b24; /* Tmavě modré pozadí */
             color: #ffffff;
+            line-height: 1.6;
         }
+
+        /* Hlavička */
         header {
-            background-color: rgba(0,0,0,0.5);
-            padding: 20px;
             text-align: center;
+            padding: 40px 20px;
+            background-color: #0a141a;
         }
+
         header h1 {
             margin: 0;
             font-size: 2.5rem;
+            letter-spacing: 1px;
         }
+
+        header p {
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* Navigace */
         nav {
-            background-color: rgba(0,0,0,0.7);
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 10px;
+            background-color: #0a141a;
+            border-top: 1px solid #1a2a33;
+            border-bottom: 1px solid #1a2a33;
+            text-align: center;
+            padding: 10px 0;
         }
+
         nav a {
-            color: #00eaff;
+            color: #00d2ff;
             text-decoration: none;
-            font-weight: bold;
+            margin: 0 15px;
+            font-weight: 500;
+            font-size: 0.9rem;
         }
+
         nav a:hover {
             text-decoration: underline;
         }
+
+        /* Hlavní kontejner */
         .container {
-            max-width: 1000px;
+            max-width: 800px;
             margin: 40px auto;
-            padding: 20px;
-            background-color: rgba(0,0,0,0.6);
-            border-radius: 10px;
+            background-color: #12232c; /* Barva karty */
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        .box {
+
+        /* Sekce textu */
+        section {
             margin-bottom: 30px;
         }
-        .box h2 {
-            color: #00eaff;
+
+        h2 {
+            color: #00d2ff;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
         }
-        footer {
-            text-align: center;
-            padding: 15px;
-            background-color: rgba(0,0,0,0.8);
-            font-size: 0.9rem;
+
+        .info-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 100px;
         }
-        .ip {
-            font-size: 1.3rem;
-            background-color: #111;
-            padding: 10px;
-            border-radius: 8px;
+
+        /* IP adresa styl */
+        .ip-box {
+            background-color: #1a2e38;
+            padding: 10px 15px;
+            border-radius: 4px;
             display: inline-block;
             margin-top: 10px;
+            border: 1px solid #253d4a;
         }
-        button {
-            background-color: #00eaff;
+
+        /* Seznam pravidel */
+        ul {
+            list-style-type: none;
+            padding-left: 10px;
+        }
+
+        ul li::before {
+            content: "•";
+            color: #00d2ff;
+            font-weight: bold;
+            display: inline-block; 
+            width: 1em;
+            margin-left: -1em;
+        }
+
+        /* Tlačítko */
+        .btn-contact {
+            background-color: #00d2ff;
             color: #000;
             border: none;
             padding: 10px 20px;
-            border-radius: 6px;
+            border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            margin-top: 10px;
         }
-        button:hover {
-            background-color: #00b6c9;
+
+        .btn-contact:hover {
+            background-color: #00b8e6;
+        }
+
+        /* Patička */
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.8rem;
+            color: #555;
+            border-top: 1px solid #1a2a33;
+            margin-top: 40px;
         }
     </style>
 </head>
 <body>
 
-<header>
-    <h1>Můj herní server</h1>
-    <p>Vítej na oficiálních stránkách serveru</p>
-</header>
+    <header>
+        <h1>Můj herní server</h1>
+        <p>Vítej na oficiálních stránkách serveru</p>
+    </header>
 
-<nav>
-    <a href="#home">Domů</a>
-    <a href="#server">Server</a>
-    <a href="#pravidla">Pravidla</a>
-    <a href="#kontakt">Kontakt</a>
-</nav>
+    <nav>
+        <a href="#">Domů</a>
+        <a href="#">Server</a>
+        <a href="#">Pravidla</a>
+        <a href="#">Kontakt</a>
+    </nav>
 
-<div class="container">
-    <div class="box" id="home">
-        <h2>O serveru</h2>
-        <p>
-            Toto je jednoduchý herní server hostovaný přes <strong>FakaHedu</strong>.
-            Připoj se k nám a užij si zábavu s ostatními hráči!
-        </p>
+    <div class="container">
+        
+        <section>
+            <h2>O serveru</h2>
+            <p>Toto je jednoduchý herní server hostovaný přes Fakahedu. Připoj se k nám a užij si zábavu s ostatními hráči!</p>
+        </section>
+
+        <section>
+            <h2>Informace o serveru</h2>
+            <p><span class="info-label">Hra:</span> Minecraft / CS2 / FiveM</p>
+            <p><span class="info-label">Verze:</span> 1.20.x</p>
+            <p><span class="info-label">IP adresa:</span></p>
+            <div class="ip-box">example.fakaheda.eu</div>
+        </section>
+
+        <section>
+            <h2>Pravidla</h2>
+            <ul>
+                <li>Zákaz cheatů</li>
+                <li>Respektuj ostatní hráče</li>
+                <li>Žádný spam</li>
+                <li>Dodržuj pokyny adminů</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Kontakt</h2>
+            <p><strong>Discord:</strong> tvuj_discord#1234</p>
+            <p><strong>Email:</strong> kontakt@tvujserver.cz</p>
+            <button class="btn-contact">Kontaktovat</button>
+        </section>
+
     </div>
 
-    <div class="box" id="server">
-        <h2>Informace o serveru</h2>
-        <p><strong>Hra:</strong> Doplníš si (např. Minecraft, CS2, FiveM)</p>
-        <p><strong>Verze:</strong> Doplníš</p>
-        <p><strong>IP adresa:</strong></p>
-        <div class="ip">example.fakaheda.eu</div>
-    </div>
-
-    <div class="box" id="pravidla">
-        <h2>Pravidla</h2>
-        <ul>
-            <li>Zákaz cheatů</li>
-            <li>Respektuj ostatní hráče</li>
-            <li>Žádný spam</li>
-            <li>Dodržuj pokyny adminů</li>
-        </ul>
-    </div>
-
-    <div class="box" id="kontakt">
-        <h2>Kontakt</h2>
-        <p>Discord: <strong>tvuj_discord#1234</strong></p>
-        <p>Email: <strong>kontakt@tvujserver.cz</strong></p>
-        <button onclick="alert('Díky za zájem o náš server!')">Kontaktovat</button>
-    </div>
-</div>
-
-<footer>
-    &copy; 2026 Můj herní server | Hosting: FakaHeda
-</footer>
+    <footer>
+        © 2026 Můj herní server | Hosting: Fakaheda
+    </footer>
 
 </body>
 </html>
