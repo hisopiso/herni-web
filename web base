@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Můj herní server</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #ffffff;
+        }
+        header {
+            background-color: rgba(0,0,0,0.5);
+            padding: 20px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        nav {
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 10px;
+        }
+        nav a {
+            color: #00eaff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: rgba(0,0,0,0.6);
+            border-radius: 10px;
+        }
+        .box {
+            margin-bottom: 30px;
+        }
+        .box h2 {
+            color: #00eaff;
+        }
+        footer {
+            text-align: center;
+            padding: 15px;
+            background-color: rgba(0,0,0,0.8);
+            font-size: 0.9rem;
+        }
+        .ip {
+            font-size: 1.3rem;
+            background-color: #111;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #00eaff;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #00b6c9;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Můj herní server</h1>
+    <p>Vítej na oficiálních stránkách serveru</p>
+</header>
+
+<nav>
+    <a href="#home">Domů</a>
+    <a href="#server">Server</a>
+    <a href="#pravidla">Pravidla</a>
+    <a href="#kontakt">Kontakt</a>
+</nav>
+
+<div class="container">
+    <div class="box" id="home">
+        <h2>O serveru</h2>
+        <p>
+            Toto je jednoduchý herní server hostovaný přes <strong>FakaHedu</strong>.
+            Připoj se k nám a užij si zábavu s ostatními hráči!
+        </p>
+    </div>
+
+    <div class="box" id="server">
+        <h2>Informace o serveru</h2>
+        <p><strong>Hra:</strong> Doplníš si (např. Minecraft, CS2, FiveM)</p>
+        <p><strong>Verze:</strong> Doplníš</p>
+        <p><strong>IP adresa:</strong></p>
+        <div class="ip">example.fakaheda.eu</div>
+    </div>
+
+    <div class="box" id="pravidla">
+        <h2>Pravidla</h2>
+        <ul>
+            <li>Zákaz cheatů</li>
+            <li>Respektuj ostatní hráče</li>
+            <li>Žádný spam</li>
+            <li>Dodržuj pokyny adminů</li>
+        </ul>
+    </div>
+
+    <div class="box" id="kontakt">
+        <h2>Kontakt</h2>
+        <p>Discord: <strong>tvuj_discord#1234</strong></p>
+        <p>Email: <strong>kontakt@tvujserver.cz</strong></p>
+        <button onclick="alert('Díky za zájem o náš server!')">Kontaktovat</button>
+    </div>
+</div>
+
+<footer>
+    &copy; 2026 Můj herní server | Hosting: FakaHeda
+</footer>
+
+</body>
+</html>
