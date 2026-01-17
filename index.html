@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hisikův Server Portal - Live Status</title>
+    <title>Hisikův Server Portal - Fixed</title>
     <style>
         body { margin: 0; padding: 0; font-family: sans-serif; background-color: #0d1b24; color: white; }
         header { text-align: center; padding: 30px; background-color: #0a141a; border-bottom: 2px solid #00d2ff; }
@@ -15,7 +15,6 @@
         .card { background: #12232c; padding: 20px; border-radius: 10px; border: 1px solid #1a2a33; transition: 0.3s; cursor: pointer; position: relative; }
         .card:hover { border-color: #00d2ff; transform: translateY(-3px); }
         
-        /* STATUS INDIKÁTORY */
         .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; background: #555; }
         .online-dot { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
         .offline-dot { background: #ff4d4d; }
@@ -112,9 +111,9 @@
     <div class="modal-content">
         <h3>Upravit server</h3>
         <input type="hidden" id="edit-index">
-        <input type="text" id="edit-name">
-        <input type="text" id="edit-ip">
-        <textarea id="edit-desc"></textarea>
+        <input type="text" id="edit-name" placeholder="Název">
+        <input type="text" id="edit-ip" placeholder="IP">
+        <textarea id="edit-desc" placeholder="Popis"></textarea>
         <button onclick="handleSaveEdit()" style="width: 100%;">ULOŽIT ZMĚNY</button>
         <button onclick="uiCloseModal('editModal')" style="background:#555; color:white; width:100%; margin-left:0;">ZAVŘÍT</button>
     </div>
@@ -127,65 +126,74 @@
         { name: 'Factorio Server', ip: '185.180.2.32:27861', desc: 'Hlavní server.' }
     ];
 
-    // --- FUNKCE PRO ZÍSKÁNÍ STAVU Z FAKAHEDY ---
+    // Funkce pro získání stavu - OPRAVENO
     async function updateServerStatuses() {
-        servers.forEach(async (srv) => {
+        for (const srv of servers) {
             try {
-                // Používáme veřejné API Fakahedy
+                // Používáme Fakaheda API (bezpečnostní poznámka: může vyžadovat CORS proxy pokud Fakaheda blokuje webové prohlížeče)
                 const response = await fetch(`https://api.fakaheda.eu/v1/status/${srv.ip}`);
+                if (!response.ok) throw new Error();
+                
                 const data = await response.json();
+                const dot = document.getElementById(`dot-${srv.ip.replace(/[:.]/g, '-')}`);
+                const txt = document.getElementById(`players-${srv.ip.replace(/[:.]/g, '-')}`);
                 
-                const dot = document.getElementById(`dot-${srv.ip}`);
-                const txt = document.getElementById(`players-${srv.ip}`);
-                
-                if (data.status === "online") {
-                    dot.className = "status-dot online-dot";
-                    txt.innerText = `Hráči: ${data.players} / ${data.slots}`;
-                } else {
-                    dot.className = "status-dot offline-dot";
-                    txt.innerText = "Server je Offline";
+                if (dot && txt) {
+                    if (data.status === "online") {
+                        dot.className = "status-dot online-dot";
+                        txt.innerText = `Hráči: ${data.players} / ${data.slots}`;
+                    } else {
+                        dot.className = "status-dot offline-dot";
+                        txt.innerText = "Server je Offline";
+                    }
                 }
             } catch (e) {
-                console.log("Status error pro " + srv.ip);
+                // Pokud API selže, aspoň vypíšeme chybu do konzole, ale web nezamrzne
+                const txt = document.getElementById(`players-${srv.ip.replace(/[:.]/g, '-')}`);
+                if (txt) txt.innerText = "Stav nedostupný (API)";
             }
-        });
+        }
     }
 
     function renderServers() {
         const container = document.getElementById('server-list-container');
+        if (!container) return;
         container.innerHTML = '';
+        
         servers.forEach((srv, index) => {
+            const safeIp = srv.ip.replace(/[:.]/g, '-'); // Vytvoří bezpečné ID bez teček a dvojteček
             const card = document.createElement('div');
             card.className = 'card';
             card.onclick = () => uiShowDetail(srv.name, srv.ip, srv.desc);
             
-            // Přidáno: ID pro tečku a text hráčů
             card.innerHTML = `
                 <div style="display:flex; align-items:center;">
-                    <span id="dot-${srv.ip}" class="status-dot"></span>
+                    <span id="dot-${safeIp}" class="status-dot"></span>
                     <h3 style="margin:0;">${srv.name}</h3>
                 </div>
                 <div style="color:#00d2ff; font-family:monospace; margin-top:5px;">${srv.ip}</div>
-                <div id="players-${srv.ip}" class="player-count">Načítání stavu...</div>
+                <div id="players-${safeIp}" class="player-count">Zjišťování stavu...</div>
             `;
             
             if(isAdmin) {
                 const controls = document.createElement('div');
                 controls.style.marginTop = "15px";
+                
                 const editBtn = document.createElement('button');
                 editBtn.innerText = 'Upravit';
                 editBtn.className = 'btn-edit';
                 editBtn.onclick = (e) => { e.stopPropagation(); uiOpenEdit(index); };
+                
                 const delBtn = document.createElement('button');
                 delBtn.innerText = 'Smazat';
                 delBtn.className = 'btn-delete';
                 delBtn.onclick = (e) => { e.stopPropagation(); handleDelete(index); };
+                
                 controls.append(editBtn, delBtn);
                 card.appendChild(controls);
             }
             container.appendChild(card);
         });
-        // Po vykreslení karet aktualizujeme jejich stavy
         updateServerStatuses();
     }
 
@@ -209,7 +217,7 @@
             uiToggleAdmin();
             renderServers();
         } else {
-            alert("Neplatné uživatelské jméno nebo heslo!");
+            alert("Neplatné údaje!");
         }
     }
 
@@ -220,7 +228,11 @@
         if(name && ip) {
             servers.push({ name, ip, desc });
             saveAndRefresh();
-            document.getElementById('add-name').value = ''; document.getElementById('add-ip').value = ''; document.getElementById('add-desc').value = '';
+            document.getElementById('add-name').value = ''; 
+            document.getElementById('add-ip').value = ''; 
+            document.getElementById('add-desc').value = '';
+        } else {
+            alert("Vyplň název a IP!");
         }
     }
 
@@ -245,7 +257,7 @@
     }
 
     function handleDelete(index) {
-        if(confirm('Opravdu smazat tento server?')) {
+        if(confirm('Opravdu smazat?')) {
             servers.splice(index, 1);
             saveAndRefresh();
         }
@@ -263,3 +275,18 @@
     }
 
     function uiShowDetail(name, ip, desc) {
+        document.getElementById('server-list').style.display = 'none';
+        document.getElementById('server-detail').style.display = 'block';
+        document.getElementById('det-name').innerText = name;
+        document.getElementById('det-ip').innerText = ip;
+        document.getElementById('det-desc').innerText = desc || 'Bez popisu.';
+    }
+
+    function uiCloseModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // Spuštění
+    renderServers();
+    setInterval(updateServerStatuses, 60000);
+</script>
+</body>
+</html>
