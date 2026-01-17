@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hisikův Server Portal - Complete</title>
+    <title>Hisikův Server Portal - Button Edition</title>
     <style>
         body { margin: 0; padding: 0; font-family: sans-serif; background-color: #0d1b24; color: white; }
         header { text-align: center; padding: 30px; background-color: #0a141a; border-bottom: 2px solid #00d2ff; }
@@ -12,21 +12,20 @@
         .container { max-width: 900px; margin: 20px auto; padding: 20px; }
         
         #server-list-container { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px; }
+        
+        /* KARTA - nyní bez cursor:pointer */
         .card { 
             background: #12232c; 
             padding: 20px; 
             border-radius: 10px; 
             border: 1px solid #1a2a33; 
-            transition: 0.3s; 
-            cursor: pointer; 
             position: relative; 
             overflow: hidden;
         }
-        .card:hover { border-color: #00d2ff; background: #162a35; }
         
         .fakaheda-banner { width: 100%; max-width: 550px; height: auto; border-radius: 5px; margin-top: 10px; border: 1px solid #333; }
 
-        /* IP Box a kopírování */
+        /* IP Box */
         .ip-copy-box { 
             background: #0a141a; 
             padding: 8px 12px; 
@@ -37,23 +36,32 @@
             color: #ffcc00;
             font-family: monospace;
             cursor: pointer;
-            position: relative;
-            z-index: 2; /* Aby bylo nad klikatelnou kartou */
+            transition: 0.2s;
         }
-        .ip-copy-box:hover { background: #00d2ff; color: black; border-style: solid; }
+        .ip-copy-box:hover { background: #1a2a33; color: white; border-style: solid; }
         
-        /* Text vpravo dole */
-        .more-info-tag {
+        /* NOVÉ TLAČÍTKO PRO DETAIL */
+        .info-button {
             position: absolute;
-            bottom: 15px;
+            bottom: 20px;
             right: 20px;
-            font-size: 0.8rem;
-            color: #00d2ff;
-            opacity: 0.7;
-            transition: 0.3s;
+            background: #00d2ff;
+            color: #000;
+            padding: 10px 18px;
+            border-radius: 5px;
             font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border: none;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.2);
         }
-        .card:hover .more-info-tag { opacity: 1; transform: translateX(5px); }
+        .info-button:hover {
+            background: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 210, 255, 0.4);
+        }
 
         .copy-popup {
             position: absolute;
@@ -67,7 +75,6 @@
             font-size: 0.75rem;
             font-weight: bold;
             display: none;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
         #admin-panel, #server-detail { display: none; }
@@ -80,10 +87,7 @@
         .modal-content { background: #12232c; margin: 10% auto; padding: 30px; width: 350px; border: 2px solid #00d2ff; border-radius: 10px; text-align: center; }
         
         input, textarea { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; background: #0a141a; color: white; border: 1px solid #333; border-radius: 5px; }
-        button { background: #00d2ff; color: black; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; margin: 5px; transition: 0.2s; }
-        button:hover { background: #00b8e6; transform: scale(1.05); }
-        .btn-edit { background: #ffcc00; }
-        .btn-delete { background: #ff4d4d; color: white; }
+        .admin-btn { background: #00d2ff; color: black; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -113,8 +117,8 @@
     </div>
 
     <div id="server-detail">
-        <button onclick="uiShowList()">← Zpět na seznam</button>
-        <div class="card" style="margin-top:20px; cursor:default;">
+        <button class="admin-btn" style="background:#555; color:white; margin-bottom:10px;" onclick="uiShowList()">← Zpět na seznam</button>
+        <div class="card">
             <h2 id="det-name" style="color:#00d2ff; margin-top:0;"></h2>
             <p id="det-desc" style="line-height: 1.6; color: #ccc;"></p>
             <div id="det-banner-box"></div>
@@ -128,22 +132,21 @@
     <div id="admin-panel">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2>🔐 Administrace</h2>
-            <button onclick="location.reload()" style="background:#ff4d4d; color:white;">Odhlásit se</button>
+            <button class="admin-btn" onclick="location.reload()" style="background:#ff4d4d; color:white;">Odhlásit se</button>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div>
                 <h3>➕ Nový server</h3>
-                <div class="card" style="cursor:default;">
+                <div class="card">
                     <input type="text" id="add-name" placeholder="Název serveru">
-                    <input type="text" id="add-ip" placeholder="IP Adresa (185.180.2.32:27861)">
-                    <textarea id="add-desc" placeholder="Popis serveru..."></textarea>
-                    <button onclick="handleCreateServer()" style="width: 100%;">VYTVOŘIT</button>
+                    <input type="text" id="add-ip" placeholder="IP:Port">
+                    <textarea id="add-desc" placeholder="Popis..."></textarea>
+                    <button class="admin-btn" onclick="handleCreateServer()" style="width: 100%;">VYTVOŘIT</button>
                 </div>
             </div>
             <div>
                 <h3>ℹ️ FTP Údaje</h3>
-                <div class="card" style="cursor:default;">
-                    <p>Zde jsou tvé fixní údaje k FTP:</p>
+                <div class="card">
                     <div style="background:#0a141a; padding:10px; border-left:4px solid #ffcc00; margin-bottom:10px;">FTP NAME: <strong>27861</strong></div>
                     <div style="background:#0a141a; padding:10px; border-left:4px solid #ffcc00;">FTP PASS: <strong>5j6mavv1</strong></div>
                 </div>
@@ -157,8 +160,7 @@
         <h3>Správce</h3>
         <input type="text" id="u" placeholder="Jméno">
         <input type="password" id="p" placeholder="Heslo">
-        <button onclick="handleLogin()">VSTOUPIT</button>
-        <p onclick="uiCloseModal('loginModal')" style="cursor:pointer; color:#777; margin-top:10px;">Zavřít</p>
+        <button class="admin-btn" onclick="handleLogin()">VSTOUPIT</button>
     </div>
 </div>
 
@@ -166,7 +168,7 @@
     const ADMINS = { "hisik": "5j6mavv1" };
     let isAdmin = false;
     let servers = JSON.parse(localStorage.getItem('myServers')) || [
-        { name: 'Kozlova Faktorka', ip: '185.180.2.32:27861', desc: 'Vítej na našem Factorio serveru! Budujeme velkou továrnu, dodržuj pravidla a bav se.' }
+        { name: 'Kozlova Faktorka', ip: '185.180.2.32:27861', desc: 'Factorio server.' }
     ];
 
     function copyIP(text, element) {
@@ -185,28 +187,27 @@
         servers.forEach((srv, index) => {
             const card = document.createElement('div');
             card.className = 'card';
-            card.onclick = () => uiShowDetail(srv.name, srv.ip, srv.desc);
             
             card.innerHTML = `
                 <h3 style="margin-top:0;">${srv.name}</h3>
                 <img class="fakaheda-banner" src="http://query.fakaheda.eu/${srv.ip}.jpg?size=550x100" alt="Status">
-                <div style="margin-top:10px;">
-                    <div class="ip-copy-box" onclick="event.stopPropagation(); copyIP('${srv.ip}', this)">
-                        <span class="copy-popup">Zkopírováno!</span>
-                        ${srv.ip}
-                    </div>
+                <br>
+                <div class="ip-copy-box" onclick="copyIP('${srv.ip}', this)">
+                    <span class="copy-popup">Zkopírováno!</span>
+                    ${srv.ip}
                 </div>
-                <div class="more-info-tag">Klikni pro více info →</div>
+                
+                <button class="info-button" onclick="uiShowDetail('${srv.name.replace(/'/g, "\\'")}', '${srv.ip}', '${srv.desc.replace(/'/g, "\\'")}')">
+                    Více informací
+                </button>
             `;
             
             if(isAdmin) {
                 const controls = document.createElement('div');
                 controls.style.marginTop = "15px";
-                controls.style.position = "relative";
-                controls.style.zIndex = "3";
                 controls.innerHTML = `
-                    <button class="btn-edit" onclick="event.stopPropagation(); uiOpenEdit(${index})">Upravit</button>
-                    <button class="btn-delete" onclick="event.stopPropagation(); handleDelete(${index})">Smazat</button>
+                    <button class="admin-btn" style="background:#ffcc00" onclick="uiOpenEdit(${index})">Upravit</button>
+                    <button class="admin-btn" style="background:#ff4d4d; color:white;" onclick="handleDelete(${index})">Smazat</button>
                 `;
                 card.appendChild(controls);
             }
@@ -224,17 +225,16 @@
         window.scrollTo(0,0);
     }
 
+    // Ostatní systémové funkce
     function handleLogin() {
         const user = document.getElementById('u').value;
         const pass = document.getElementById('p').value;
         if(ADMINS[user] === pass) {
             isAdmin = true;
             uiCloseModal('loginModal');
-            document.getElementById('nav-admin').innerText = "Administrace (OK)";
-            document.getElementById('server-list').style.display = 'none';
-            document.getElementById('admin-panel').style.display = 'block';
+            uiToggleAdmin();
             renderServers();
-        } else { alert("Špatné jméno nebo heslo!"); }
+        } else { alert("Chyba!"); }
     }
 
     function handleCreateServer() {
@@ -244,14 +244,11 @@
         if(name && ip) {
             servers.push({ name, ip, desc });
             saveAndRefresh();
-            document.getElementById('add-name').value = ''; 
-            document.getElementById('add-ip').value = ''; 
-            document.getElementById('add-desc').value = '';
         }
     }
 
     function handleDelete(index) {
-        if(confirm('Opravdu smazat server?')) {
+        if(confirm('Smazat?')) {
             servers.splice(index, 1);
             saveAndRefresh();
         }
