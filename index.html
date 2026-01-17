@@ -45,6 +45,9 @@
         .modal-content { background: #12232c; margin: 5% auto; padding: 30px; width: 400px; border: 2px solid #00d2ff; border-radius: 10px; text-align: center; }
 
         .contact-card { background: #0a141a; padding: 30px; border-radius: 10px; border-left: 5px solid #00d2ff; line-height: 2; }
+        
+        .ftp-info { background: #0a141a; padding: 15px; border-radius: 5px; margin-top: 20px; border: 1px solid #ffcc00; }
+        .ftp-info strong { color: #ffcc00; }
     </style>
 </head>
 <body>
@@ -71,7 +74,6 @@
             <p><strong>Discord:</strong> discord.gg/vaseserverinfo</p>
             <p><strong>Email:</strong> podpora@server.cz</p>
             <p><strong>Majitel:</strong> Hisik</p>
-            <p><strong>Dostupnost:</strong> Po-Ne 9:00 - 22:00</p>
         </div>
         <button class="admin-btn" style="margin-top:20px;" onclick="uiShowList()">Zpět domů</button>
     </div>
@@ -96,14 +98,20 @@
             <h2>🔐 Administrace</h2>
             <button class="admin-btn" onclick="location.reload()" style="background:#ff4d4d; color:white;">Odhlásit se</button>
         </div>
+        
         <div class="card" onkeydown="if(event.key === 'Enter') handleCreateServer()">
             <h3>➕ Přidat nový server</h3>
             <input type="text" id="add-name" placeholder="Název serveru">
             <input type="text" id="add-ip" placeholder="IP:Port">
             <input type="text" id="add-pass" placeholder="Heslo (volitelné)">
             <textarea id="add-desc" placeholder="Popis..."></textarea>
-            <p style="font-size: 0.8rem; color: #777;">(Lze potvrdit Enterem)</p>
-            <button class="admin-btn" onclick="handleCreateServer()" style="width: 100%;">VYTVOŘIT</button>
+            <button class="admin-btn" onclick="handleCreateServer()" style="width: 100%;">VYTVOŘIT SERVER</button>
+            
+            <div class="ftp-info">
+                <h3>ℹ️ FTP Přístup k Fakahedě</h3>
+                <p>Uživatelské jméno: <strong>27861</strong></p>
+                <p>Heslo: <strong>5j6mavv1</strong></p>
+            </div>
         </div>
     </div>
 </div>
@@ -127,7 +135,6 @@
         <input type="text" id="u" placeholder="Uživatel" autofocus>
         <input type="password" id="p" placeholder="Heslo">
         <button class="admin-btn" onclick="handleLogin()">VSTOUPIT (Enter)</button>
-        <p onclick="uiCloseModal('loginModal')" style="cursor:pointer; color:#777; margin-top:10px;">Zavřít</p>
     </div>
 </div>
 
@@ -175,9 +182,7 @@
     }
 
     function handleLogin() {
-        const user = document.getElementById('u').value;
-        const pass = document.getElementById('p').value;
-        if(ADMINS[user] === pass) {
+        if(ADMINS[document.getElementById('u').value] === document.getElementById('p').value) {
             isAdmin = true;
             uiCloseModal('loginModal');
             document.getElementById('nav-admin').innerText = "🛠 Admin Panel";
@@ -238,7 +243,8 @@
     
     function uiHideAll() {
         ['server-list', 'server-detail', 'admin-panel', 'contact-page'].forEach(id => {
-            document.getElementById(id).style.display = 'none';
+            const el = document.getElementById(id);
+            if(el) el.style.display = 'none';
         });
     }
 
