@@ -7,10 +7,10 @@
     <style>
         body { margin: 0; padding: 0; font-family: sans-serif; background-color: #0d1b24; color: white; }
         
-        /* PASSWORD WALL STYLY */
+        /* PASSWORD WALL */
         #password-wall {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0d1b24; z-index: 20000; display: flex;
+            background: #0d1b24; z-index: 99999; display: flex;
             flex-direction: column; justify-content: center; align-items: center;
         }
         .wall-box {
@@ -28,7 +28,7 @@
         
         .container { max-width: 900px; margin: 20px auto; padding: 20px; }
         #server-list-container { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px; }
-        .card { background: #12232c; padding: 20px; border-radius: 10px; border: 1px solid #1a2a33; position: relative; }
+        .card { background: #12232c; padding: 20px; border-radius: 10px; border: 1px solid #1a2a33; position: relative; overflow: hidden; }
         
         .fakaheda-banner { width: 100%; max-width: 550px; height: auto; border-radius: 5px; margin-top: 10px; border: 1px solid #333; display: block; }
         .fakaheda-banner[src=""], .fakaheda-banner:not([src]) { display: none; }
@@ -51,7 +51,7 @@
         }
 
         /* TOAST NOTIFIKACE */
-        #toast-container { position: fixed; top: 20px; left: 20px; z-index: 30000; }
+        #toast-container { position: fixed; top: 20px; left: 20px; z-index: 100000; }
         .toast { 
             min-width: 220px; padding: 15px 20px; margin-bottom: 10px; border-radius: 8px; 
             color: white; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
@@ -65,8 +65,10 @@
         input, textarea { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; background: #0a141a; color: white; border: 1px solid #333; border-radius: 5px; }
         .admin-btn { background: #00d2ff; color: black; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px; margin-right: 5px; }
         
-        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+        .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
         .modal-content { background: #12232c; margin: 5% auto; padding: 30px; width: 400px; border: 2px solid #00d2ff; border-radius: 10px; text-align: center; }
+
+        .ftp-info { background: #0a141a; padding: 15px; border-radius: 5px; margin-top: 20px; border: 1px solid #ffcc00; text-align: left; }
     </style>
 </head>
 <body>
@@ -74,7 +76,7 @@
 <div id="password-wall">
     <div class="wall-box" onkeydown="if(event.key === 'Enter') checkSitePassword()">
         <h1 style="color:#00d2ff; margin-top:0;">Vstup chráněn</h1>
-        <p>Pro zobrazení portálu zadejte heslo:</p>
+        <p>Zadejte heslo pro přístup k portálu:</p>
         <input type="password" id="site-pass" placeholder="Heslo..." autofocus>
         <button class="admin-btn" onclick="checkSitePassword()" style="width:100%; margin-top:10px;">VSTOUPIT</button>
     </div>
@@ -102,10 +104,11 @@
         <div id="contact-page">
             <h2>Kontakt na vedení</h2>
             <div class="card">
-                <p><strong>Discord:</strong> jeste neni</p>
-                <p><strong>Email:</strong> hisnoster@gmail.com</p>
-                <p><strong>Majitel:</strong> Hisik</p>
+                <p><strong>Discord:</strong> discord.gg/vaseserverinfo</p>
+                <p><strong>Email:</strong> podpora@server.cz</p>
+                <p><strong>Majitelé:</strong> Hisik & Dego</p>
             </div>
+            <button class="admin-btn" style="margin-top:20px;" onclick="uiShowList()">Zpět domů</button>
         </div>
 
         <div id="server-detail">
@@ -132,9 +135,13 @@
                 <h3>➕ Přidat nový server</h3>
                 <input type="text" id="add-name" placeholder="Název serveru">
                 <input type="text" id="add-ip" placeholder="IP:Port">
-                <input type="text" id="add-pass" placeholder="Heslo k serveru">
+                <input type="text" id="add-pass" placeholder="Heslo (volitelné)">
                 <textarea id="add-desc" placeholder="Popis..."></textarea>
                 <button class="admin-btn" onclick="handleCreateServer()" style="width: 100%;">VYTVOŘIT SERVER</button>
+                <div class="ftp-info">
+                    <h3>ℹ️ FTP Přístup</h3>
+                    <p>Uživatelské jméno: <strong>27861</strong><br>Heslo: <strong>5j6mavv1</strong></p>
+                </div>
             </div>
         </div>
     </div>
@@ -155,7 +162,7 @@
 
 <div id="loginModal" class="modal">
     <div class="modal-content" onkeydown="if(event.key === 'Enter') handleLogin()">
-        <h3>Administrace</h3>
+        <h3>Přihlášení správce</h3>
         <input type="text" id="u" placeholder="Uživatel">
         <input type="password" id="p" placeholder="Heslo">
         <button class="admin-btn" onclick="handleLogin()">VSTOUPIT</button>
@@ -163,24 +170,26 @@
 </div>
 
 <script>
-    const SITE_PASSWORD = "hiso"; // Heslo pro vstup na stránku
-    const ADMINS = { "hisik": "5j6mavv1" }
-    { "dego": "kokot" };
+    const SITE_PASSWORD = "hiso"; // Hlavní heslo pro vstup
+    const ADMINS = { 
+        "hisik": "5j6mavv1",
+        "dego": "kokot" 
+    };
+    
     let isAdmin = false;
     let servers = JSON.parse(localStorage.getItem('myServers')) || [
         { name: 'Kozlova Faktorka', ip: '185.180.2.32:27861', desc: 'Vítej na Kozlově faktorce!', pass: '123' }
     ];
 
-    // Funkce pro hlavní Password Wall
     function checkSitePassword() {
         const pass = document.getElementById('site-pass').value;
         if(pass === SITE_PASSWORD) {
             document.getElementById('password-wall').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
             renderServers();
-            notify("Vítejte na portálu!", "success");
+            notify("Vítejte zpět!", "success");
         } else {
-            notify("Špatné přístupové heslo!", "error");
+            notify("Nesprávné heslo!", "error");
         }
     }
 
@@ -219,13 +228,15 @@
     }
 
     function handleLogin() {
-        if(ADMINS[document.getElementById('u').value] === document.getElementById('p').value) {
-            isAdmin = true; uiCloseModal('loginModal'); uiShowList(); notify("Admin přihlášen!", "success");
-        } else { notify("Chybné údaje!", "error"); }
+        const u = document.getElementById('u').value;
+        const p = document.getElementById('p').value;
+        if(ADMINS[u] === p) {
+            isAdmin = true; uiCloseModal('loginModal'); uiShowList(); notify("Admin " + u + " přihlášen!", "success");
+        } else { notify("Chybné jméno nebo heslo!", "error"); }
     }
 
     function handleDelete(index) {
-        if(confirm('Opravdu smazat?')) {
+        if(confirm('Opravdu chcete tento server smazat?')) {
             servers.splice(index, 1); saveAndRefresh(); notify("Server smazán!", "error");
         }
     }
@@ -236,7 +247,7 @@
             servers.push({ name: n, ip: document.getElementById('add-ip').value, pass: document.getElementById('add-pass').value, desc: document.getElementById('add-desc').value });
             saveAndRefresh(); notify("Server vytvořen!", "success");
             document.getElementById('add-name').value = ''; document.getElementById('add-ip').value = '';
-        }
+        } else { notify("Zadejte název!", "error"); }
     }
 
     function uiOpenEdit(index) {
@@ -272,7 +283,7 @@
     function uiToggleAdmin() { if(isAdmin) { uiHideAll(); document.getElementById('admin-panel').style.display='block'; } else { document.getElementById('loginModal').style.display='block'; } }
     function uiCloseModal(id) { document.getElementById(id).style.display='none'; }
 
-    // Pouze inicializace dat, renderování proběhne až po zadání hesla
+    // Pouze start dat
 </script>
 </body>
 </html>
