@@ -17,7 +17,6 @@
         #server-list-container { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px; }
         .card { background: #12232c; padding: 20px; border-radius: 10px; border: 1px solid #1a2a33; position: relative; overflow: hidden; }
         
-        /* Styl pro obrázky a bannery */
         .server-custom-img { width: 100%; max-width: 550px; height: 100px; object-fit: cover; border-radius: 5px; margin-bottom: 15px; border: 1px solid #333; display: block; }
         .fakaheda-banner { width: 100%; max-width: 550px; height: auto; border-radius: 5px; margin-top: 10px; border: 1px solid #333; display: block; }
         
@@ -115,10 +114,10 @@
     <div class="modal-content">
         <h3>Upravit server</h3>
         <input type="hidden" id="edit-index">
-        <input type="text" id="edit-name" placeholder="Název">
-        <input type="text" id="edit-ip" placeholder="IP:Port">
-        <input type="text" id="edit-pass" placeholder="Heslo">
-        <textarea id="edit-desc" placeholder="Popis"></textarea>
+        <input type="text" id="edit-name">
+        <input type="text" id="edit-ip">
+        <input type="text" id="edit-pass">
+        <textarea id="edit-desc"></textarea>
         <label class="file-input-label">🖼️ Změnit banner (550x100)<input type="file" id="edit-file" accept="image/*" style="display:none;" onchange="updateFileLabel(this, 'edit-file-name')"></label>
         <small id="edit-file-name" style="display:block; color:#777; margin-bottom:10px;">Ponechat původní</small>
         <button class="admin-btn" onclick="handleSaveEdit()">ULOŽIT</button>
@@ -132,18 +131,25 @@
         <input type="text" id="u" placeholder="Uživatel">
         <input type="password" id="p" placeholder="Heslo">
         <button class="admin-btn" onclick="handleLogin()">VSTOUPIT</button>
-        <button class="admin-btn" style="background:#555; color:white;" onclick="uiCloseModal('loginModal')">ZAVŘÍT</button>
     </div>
 </div>
 
 <script>
-    // KONFIGURACE
     const ENABLE_PASSWORD_WALL = true; 
     const SITE_PASSWORD = "hiso"; 
     const ADMINS = { "hisik": "5j6mavv1", "dego": "kokot" };
 
     let isAdmin = false;
-    let servers = JSON.parse(localStorage.getItem('myServers')) || [];
+
+    // Tady jsem vrátil tu Kozlovu Faktorku jako výchozí data
+    let defaultServers = [
+        { name: 'Kozlova Faktorka', ip: '185.180.2.32:27861', desc: 'Vítej na Kozlově faktorce! Factorio server pro komunitu.', pass: '', image: '' }
+    ];
+
+    let servers = JSON.parse(localStorage.getItem('myServers'));
+    if (!servers || servers.length === 0) {
+        servers = defaultServers;
+    }
 
     function updateFileLabel(input, displayId) {
         document.getElementById(displayId).innerText = input.files[0] ? "Vybráno: " + input.files[0].name : "Žádný soubor nevybrán";
@@ -180,8 +186,7 @@
         }
 
         servers.push({
-            name: n, 
-            ip: document.getElementById('add-ip').value,
+            name: n, ip: document.getElementById('add-ip').value,
             pass: document.getElementById('add-pass').value,
             desc: document.getElementById('add-desc').value,
             image: imgData
@@ -189,28 +194,16 @@
         saveAndRefresh();
         notify("Server vytvořen!", "success");
         uiShowList();
-        
-        // Reset polí
-        document.getElementById('add-name').value = '';
-        document.getElementById('add-ip').value = '';
-        document.getElementById('add-pass').value = '';
-        document.getElementById('add-desc').value = '';
-        document.getElementById('add-file').value = '';
-        document.getElementById('file-name-display').innerText = "Pokud nevyberete, použije se Fakaheda banner";
     }
 
     function renderServers() {
         const container = document.getElementById('server-list-container');
         container.innerHTML = '';
-        
-        if(servers.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#777; margin-top:20px;">Zatím zde nejsou žádné servery.</p>';
-        }
-
         servers.forEach((srv, index) => {
             const card = document.createElement('div');
             card.className = 'card';
             
+            // Pokud není vlastní obrázek, použije se Fakaheda banner (pokud je IP)
             let bannerHtml = '';
             if(srv.image) {
                 bannerHtml = `<img src="${srv.image}" class="server-custom-img">`;
@@ -226,14 +219,10 @@
                 </div>
                 <button class="info-button" onclick="uiShowDetail(${index})">Více informací</button>
             `;
-            
             if(isAdmin) {
-                const d = document.createElement('div'); 
-                d.style.marginTop = "15px";
-                d.innerHTML = `
-                    <button class="admin-btn" style="background:#ffcc00" onclick="uiOpenEdit(${index})">Upravit</button>
-                    <button class="admin-btn" style="background:#ff4d4d; color:white;" onclick="handleDelete(${index})">Smazat</button>
-                `;
+                const d = document.createElement('div'); d.style.marginTop = "15px";
+                d.innerHTML = `<button class="admin-btn" style="background:#ffcc00" onclick="uiOpenEdit(${index})">Upravit</button>
+                               <button class="admin-btn" style="background:#ff4d4d; color:white;" onclick="handleDelete(${index})">Smazat</button>`;
                 card.appendChild(d);
             }
             container.appendChild(card);
@@ -276,8 +265,7 @@
     }
 
     function uiShowDetail(i) {
-        const s = servers[i]; 
-        uiHideAll(); 
+        const s = servers[i]; uiHideAll(); 
         const detBox = document.getElementById('detail-card-box');
         document.getElementById('server-detail').style.display = 'block';
         
@@ -291,9 +279,9 @@
         detBox.innerHTML = `
             ${bannerHtml}
             <h2 style="color:#00d2ff;">${s.name}</h2>
-            <p style="line-height:1.6; color:#ccc;">${s.desc || 'Bez popisu.'}</p>
+            <p>${s.desc || 'Bez popisu.'}</p>
             <div class="copy-box" onclick="copyToClipboard('${s.ip}', this)">
-                <span class="copy-popup">Zkopírováno!</span> IP: <strong>${s.ip || 'Není'}</strong>
+                <span class="copy-popup">Zkopírováno!</span> IP: <strong>${s.ip}</strong>
             </div>
             ${s.pass ? `<div class="copy-box" style="border-color:#ff4d4d; color:#ff4d4d;" onclick="copyToClipboard('${s.pass}', this)">
                 <span class="copy-popup">Zkopírováno!</span> Heslo: <strong>${s.pass}</strong>
@@ -312,52 +300,25 @@
     function handleLogin() {
         const u = document.getElementById('u').value, p = document.getElementById('p').value;
         if(ADMINS[u] === p) {
-            isAdmin = true; 
-            uiCloseModal('loginModal'); 
-            renderServers(); 
-            uiShowList(); 
-            notify("Vítej adminne!", "success");
+            isAdmin = true; uiCloseModal('loginModal'); renderServers(); uiShowList(); notify("Vítej adminne!", "success");
         } else { notify("Chyba!", "error"); }
     }
 
-    function handleDelete(index) { 
-        if(confirm('Opravdu smazat tento server?')) { 
-            servers.splice(index, 1); 
-            saveAndRefresh(); 
-            notify("Smazáno!", "error"); 
-        } 
-    }
-
-    function saveAndRefresh() { 
-        localStorage.setItem('myServers', JSON.stringify(servers)); 
-        renderServers(); 
-    }
-
+    function handleDelete(index) { if(confirm('Opravdu smazat?')) { servers.splice(index, 1); saveAndRefresh(); notify("Smazáno!", "error"); } }
+    function saveAndRefresh() { localStorage.setItem('myServers', JSON.stringify(servers)); renderServers(); }
     function notify(text, type) {
         const container = document.getElementById('toast-container');
         const t = document.createElement('div'); t.className = `toast ${type}`; t.innerText = text;
         container.appendChild(t); setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3000);
     }
-
-    function copyToClipboard(t, e) { 
-        if(!t) return;
-        navigator.clipboard.writeText(t); 
-        const p = e.querySelector('.copy-popup'); 
-        if(p){ p.style.display='block'; setTimeout(()=>p.style.display='none', 1000); } 
-    }
-
+    function copyToClipboard(t, e) { navigator.clipboard.writeText(t); const p = e.querySelector('.copy-popup'); if(p){p.style.display='block'; setTimeout(()=>p.style.display='none', 1000);} }
     function uiHideAll() { ['server-list','server-detail','admin-panel','contact-page'].forEach(id=>document.getElementById(id).style.display='none'); }
     function uiShowList() { uiHideAll(); document.getElementById('server-list').style.display='block'; renderServers(); }
     function uiShowContact() { uiHideAll(); document.getElementById('contact-page').style.display='block'; }
     function uiToggleAdmin() { isAdmin ? (uiHideAll(), document.getElementById('admin-panel').style.display='block') : document.getElementById('loginModal').style.display='block'; }
     function uiCloseModal(id) { document.getElementById(id).style.display='none'; }
 
-    // INITIALIZE
-    if(!ENABLE_PASSWORD_WALL) {
-        document.getElementById('password-wall').style.display = 'none';
-        document.getElementById('main-content').style.display = 'block';
-        renderServers();
-    }
+    if(!ENABLE_PASSWORD_WALL) { document.getElementById('password-wall').style.display = 'none'; document.getElementById('main-content').style.display = 'block'; renderServers(); }
 </script>
 </body>
 </html>
