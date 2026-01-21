@@ -7,9 +7,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { margin: 0; padding: 0; font-family: sans-serif; background-color: #0d1b24; color: white; }
-        #password-wall { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0d1b24; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .wall-box { background: #12232c; padding: 40px; border-radius: 15px; border: 2px solid #00d2ff; text-align: center; box-shadow: 0 0 30px rgba(0, 210, 255, 0.2); }
-        #main-content { display: none; }
+        /* Schováváme zámek hned v základu */
+        #password-wall { display: none; } 
+        #main-content { display: block; }
+
         header { text-align: center; padding: 30px; background-color: #0a141a; border-bottom: 2px solid #00d2ff; }
         nav { background-color: #0a141a; text-align: center; padding: 15px; border-bottom: 1px solid #1a2a33; display: flex; justify-content: center; gap: 25px; }
         nav a { color: #00d2ff; text-decoration: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
@@ -36,15 +37,6 @@
     </style>
 </head>
 <body>
-
-<div id="password-wall">
-    <div class="wall-box" onkeydown="if(event.key === 'Enter') checkSitePassword()">
-        <h1 style="color:#00d2ff; margin-top:0;">Vstup chráněn</h1>
-        <p>Zadejte heslo pro přístup k portálu:</p>
-        <input type="password" id="site-pass" placeholder="Heslo..." autofocus>
-        <button class="admin-btn" onclick="checkSitePassword()" style="width:100%;">VSTOUPIT</button>
-    </div>
-</div>
 
 <div id="toast-container"></div>
 
@@ -84,11 +76,11 @@
             <div class="card">
                 <h3>➕ Přidat nový server</h3>
                 <input type="text" id="add-name" placeholder="Název serveru">
-                <input type="text" id="add-ip" placeholder="IP:Port (např. 185.180.2.32:27861)">
-                <input type="text" id="add-pass" placeholder="Heslo k serveru (pokud je)">
-                <textarea id="add-desc" placeholder="Popis serveru..."></textarea>
+                <input type="text" id="add-ip" placeholder="IP:Port">
+                <input type="text" id="add-pass" placeholder="Heslo k serveru">
+                <textarea id="add-desc" placeholder="Popis..."></textarea>
                 <label class="file-input-label">🖼️ Nahrát vlastní banner (550x100)<input type="file" id="add-file" accept="image/*" style="display:none;" onchange="updateFileLabel(this, 'file-name-display')"></label>
-                <small id="file-name-display" style="display:block; text-align:center; color:#777; margin-bottom:10px;">Pokud nevyberete, použije se automatický Fakaheda banner</small>
+                <small id="file-name-display" style="display:block; text-align:center; color:#777; margin-bottom:10px;">Pokud nevyberete, použije se Fakaheda banner</small>
                 <button class="admin-btn" onclick="handleCreateServer()" style="width: 100%;">VYTVOŘIT SERVER</button>
             </div>
         </div>
@@ -101,16 +93,15 @@
         <input type="text" id="u" placeholder="Uživatel">
         <input type="password" id="p" placeholder="Heslo">
         <button class="admin-btn" onclick="handleLogin()">VSTOUPIT</button>
+        <button class="admin-btn" style="background:#555; color:white;" onclick="uiCloseModal('loginModal')">ZAVŘÍT</button>
     </div>
 </div>
 
 <script>
-    // --- KONFIGURACE DATABÁZE ---
+    // --- KONFIGURACE ---
     const SB_URL = "https://rgcqgcfddkccdinoeznq.supabase.co";
     const SB_KEY = "sb_publishable_aEA_lH8mt9DVfylxmbi-ZQ_QIBVm1hw";
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
-
-    const SITE_PASS = "hiso"; 
     const ADMINS = { "hisik": "5j6mavv1", "dego": "kokot" };
     
     let isAdmin = false;
@@ -119,12 +110,8 @@
     // --- NAČTENÍ DAT ---
     async function loadServers() {
         const { data, error } = await _supabase.from('servers').select('*').order('created_at', { ascending: false });
-        if (error) {
-            notify("Chyba databáze!", "error");
-        } else {
-            servers = data;
-            renderServers();
-        }
+        if (error) { notify("Chyba databáze!", "error"); } 
+        else { servers = data; renderServers(); }
     }
 
     function renderServers() {
@@ -134,28 +121,11 @@
             container.innerHTML = "<p style='text-align:center; color:#777;'>Databáze je prázdná. Přidejte server v administraci.</p>";
             return;
         }
-        
         servers.forEach((srv, index) => {
             const card = document.createElement('div');
             card.className = 'card';
-            
-            // Logika banneru
-            let bannerHtml = '';
-            if(srv.image && srv.image.trim() !== "") {
-                bannerHtml = `<img src="${srv.image}" class="server-custom-img">`;
-            } else if(srv.ip) {
-                bannerHtml = `<img class="fakaheda-banner" src="http://query.fakaheda.eu/${srv.ip}.jpg?size=550x100" alt="Status">`;
-            }
-
-            card.innerHTML = `
-                ${bannerHtml}
-                <h3 style="margin-top:10px;">${srv.name}</h3>
-                <div class="copy-box" onclick="copyToClipboard('${srv.ip}', this)">
-                    <span class="copy-popup">Zkopírováno!</span> IP: ${srv.ip || 'Bez IP'}
-                </div>
-                <button class="info-button" onclick="uiShowDetail(${index})">Více informací</button>
-            `;
-            
+            let banner = srv.image ? `<img src="${srv.image}" class="server-custom-img">` : (srv.ip ? `<img class="fakaheda-banner" src="http://query.fakaheda.eu/${srv.ip}.jpg?size=550x100">` : '');
+            card.innerHTML = `${banner}<h3 style="margin-top:10px;">${srv.name}</h3><div class="copy-box" onclick="copyToClipboard('${srv.ip}', this)"><span class="copy-popup">Zkopírováno!</span> IP: ${srv.ip || 'Bez IP'}</div><button class="info-button" onclick="uiShowDetail(${index})">Více informací</button>`;
             if(isAdmin) {
                 const d = document.createElement('div'); d.style.marginTop = "15px";
                 d.innerHTML = `<button class="admin-btn" style="background:#ff4d4d; color:white;" onclick="handleDelete(${srv.id})">Smazat</button>`;
@@ -165,48 +135,32 @@
         });
     }
 
-    // --- LOGIKA ---
+    // --- ADMIN FUNKCE ---
     async function handleCreateServer() {
         const n = document.getElementById('add-name').value;
         const ip = document.getElementById('add-ip').value;
         const fileInput = document.getElementById('add-file');
         if(!n || !ip) return notify("Název a IP jsou povinné!", "error");
-        
         let imgData = "";
         if(fileInput.files[0]) {
             try { imgData = await processImage(fileInput.files[0]); } catch(e) { return notify(e, "error"); }
         }
-
-        const { error } = await _supabase.from('servers').insert([{ 
-            name: n, ip: ip, 
-            pass: document.getElementById('add-pass').value, 
-            desc: document.getElementById('add-desc').value, 
-            image: imgData 
-        }]);
-
-        if(error) notify("Chyba zápisu do DB!", "error");
-        else { notify("Server uložen!", "success"); loadServers(); uiShowList(); }
+        const { error } = await _supabase.from('servers').insert([{ name: n, ip: ip, pass: document.getElementById('add-pass').value, desc: document.getElementById('add-desc').value, image: imgData }]);
+        if(error) notify("Chyba zápisu!", "error");
+        else { notify("Uloženo!", "success"); loadServers(); uiShowList(); }
     }
 
     async function handleDelete(id) {
-        if(!confirm("Opravdu smazat z databáze?")) return;
+        if(!confirm("Opravdu smazat?")) return;
         const { error } = await _supabase.from('servers').delete().eq('id', id);
         if(error) notify("Chyba smazání!", "error");
         else { notify("Smazáno!", "error"); loadServers(); }
     }
 
-    function checkSitePassword() {
-        if(document.getElementById('site-pass').value === SITE_PASS) {
-            document.getElementById('password-wall').style.display = 'none';
-            document.getElementById('main-content').style.display = 'block';
-            loadServers();
-        } else { notify("Špatné heslo!", "error"); }
-    }
-
     function handleLogin() {
         const u = document.getElementById('u').value, p = document.getElementById('p').value;
         if(ADMINS[u] === p) { isAdmin = true; uiCloseModal('loginModal'); renderServers(); notify("Admin přihlášen!", "success"); }
-        else notify("Špatné jméno nebo heslo!", "error");
+        else notify("Chyba!", "error");
     }
 
     // --- POMOCNÉ FUNKCE ---
@@ -217,7 +171,7 @@
                 if(img.width===550 && img.height===100) {
                     const reader = new FileReader(); reader.readAsDataURL(file);
                     reader.onload = () => resolve(reader.result);
-                } else reject("Obrázek musí mít přesně 550x100 pixelů!");
+                } else reject("Obrázek musí mít 550x100!");
             };
         });
     }
@@ -233,6 +187,9 @@
         const banner = s.image ? `<img src="${s.image}" class="server-custom-img" style="height:auto;">` : (s.ip ? `<img class="fakaheda-banner" src="http://query.fakaheda.eu/${s.ip}.jpg?size=550x100">` : '');
         document.getElementById('detail-card-box').innerHTML = `${banner}<h2>${s.name}</h2><p>${s.desc || 'Bez popisu.'}</p><div class="copy-box">IP: ${s.ip}</div>${s.pass ? `<div class="copy-box" style="color:#ff4d4d;">Heslo: ${s.pass}</div>`:''}`;
     }
+
+    // NAČÍST HNED PŘI STARTU
+    loadServers();
 </script>
 </body>
 </html>
