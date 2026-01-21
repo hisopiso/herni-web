@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Moje HTML Roblox Obby</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            pointer-events: none;
+        }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+
+<div id="info">
+    <h2>Mini Roblox Obby</h2>
+    <p>Pohyb: <b>W, A, S, D</b> nebo šipky</p>
+    <p>Skok: <b>Mezerník</b></p>
+    <p>Cíl: Dostaň se na zlatou plošinu!</p>
+    <p>Pozor na červenou lávu!</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+    // --- ZÁKLADNÍ NASTAVENÍ SCÉNY ---
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x87CEEB); // Robloxácká modrá obloha
+
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true; // Stíny
+    document.body.appendChild(renderer.domElement);
+
+    // --- SVĚTLA ---
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(10, 20, 10);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+
+    // --- HRÁČ (Kostička) ---
+    const playerGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+    const playerMaterial = new THREE.MeshLambertMaterial({ color: 0xffff00 }); // Žlutý panáček
+    const player = new THREE.Mesh(playerGeometry, playerMaterial);
+    player.castShadow = true;
+    player.position.set(0, 5, 0); // Startovní pozice
+    scene.add(player);
+
+    // --- FYZIKA A OVLÁDÁNÍ ---
+    let velocity = new THREE.Vector3(0, 0, 0);
+    let onGround = false;
+    const gravity = 0.03;
+    const speed = 0.15;
+    const jumpStrength = 0.6;
+    const keys = { w: false, a: false, s: false, d: false, space: false };
+
+    // --- LEVEL DESIGN (Plošiny) ---
+    const platforms = [];
+
+    function createPlatform(x, y, z, width, depth, color, isLava = false, isWin = false) {
+        const geometry = new THREE.BoxGeometry(width, 1, depth);
+        const material = new THREE.MeshLambertMaterial({ color: color });
+        const platform = new THREE.Mesh(geometry, material);
+        platform.position.set(x, y, z);
+        platform.receiveShadow = true;
+        
+        // Vlastní data pro logiku
+        platform.userData = { isLava: isLava, isWin: isWin, width: width, depth: depth };
+        
+        scene.add(platform);
+        platforms.push(platform);
+    }
+
+    // Vytváření levelu (Obby)
+    createPlatform(0, 0, 0, 5, 5, 0x00ff00);       // Start (Zelená)
+    createPlatform(0, 0, -6, 3, 3, 0xaaaaaa);      // Skok 1
+    createPlatform(0, 1, -12, 3, 3, 0xaaaaaa);     // Skok 2 (výš)
+    
+    // Láva sekce
+    createPlatform(0, 1, -18, 8, 3, 0xff0000, true); // LÁVA (smrt)
+    createPlatform(0, 2.5, -18, 2, 2, 0xaaaaaa);     // Bezpečný ostrůvek uprostřed lávy
+    
+    createPlatform(4, 3, -24, 3, 3, 0xaaaaaa);     // Skok do strany
+    createPlatform(-4, 4, -28, 3, 3, 0xaaaaaa);    // Další strana
+    createPlatform(0, 5, -34, 4, 4, 0xD4AF37, false, true); // CÍL (Zlatá)
+
+    // --- OVLÁDÁNÍ KLÁVESNICÍ ---
+    document.addEventListener('keydown', (e) => {
+        switch(e.key.toLowerCase()) {
+            case 'w': keys.w = true; break;
+            case 'a': keys.a = true; break;
+            case 's': keys.s = true; break;
+            case 'd': keys.d = true; break;
+            case ' ': keys.space = true; break;
+        }
+    });
+
+    document.addEventListener('keyup', (e) => {
+        switch(e.key.toLowerCase()) {
+            case 'w': keys.w = false; break;
+            case 'a': keys.a = false; break;
+            case 's': keys.s = false; break;
+            case 'd': keys.d = false; break;
+            case ' ': keys.space = false; break;
+        }
+    });
+
+    // --- LOGIKA HRY (Update Loop) ---
+    function update() {
+        // Pohyb do stran
+        if (keys.w) player.position.z -= speed;
+        if (keys.s) player.position.z += speed;
+        if (keys.a) player.position.x -= speed;
+        if (keys.d) player.position.x += speed;
+
+        // Skákání
+        if (keys.space && onGround) {
+            velocity.y = jumpStrength;
+            onGround = false;
+        }
+
+        // Aplikace gravitace
+        velocity.y -= gravity;
+        player.position.y += velocity.y;
+
+        // --- KOLIZE S PLOŠINAMI ---
+        onGround = false;
+        
+        // Jednoduchá detekce kolize (AABB)
+        // Kontrolujeme, zda je hráč nad plošinou a padá dolů
+        for (let p of platforms) {
+            const margin = 0.5; // Tolerance okrajů
+            
+            // Kontrola X a Z (jsme nad plošinou?)
+            if (player.position.x > p.position.x - p.userData.width/2 - margin &&
+                player.position.x < p.position.x + p.userData.width/2 + margin &&
+                player.position.z > p.position.z - p.userData.depth/2 - margin &&
+                player.position.z < p.position.z + p.userData.depth/2 + margin) {
+                
+                // Kontrola Y (dopadli jsme na ni?)
+                // Hráčova spodní hrana vs vrchní hrana plošiny
+                if (player.position.y - 0.4 <= p.position.y + 0.5 && 
+                    player.position.y - 0.4 >= p.position.y - 0.5 &&
+                    velocity.y <= 0) {
+                    
+                    // Jsme na zemi
+                    onGround = true;
+                    velocity.y = 0;
+                    player.position.y = p.position.y + 0.9; // Posadit hráče na plošinu
+
+                    // Logika lávy a cíle
+                    if (p.userData.isLava) {
+                        respawn();
+                    }
+                    if (p.userData.isWin) {
+                        alert("Vyhrál jsi! Gratulace!");
+                        respawn();
+                    }
+                }
+            }
+        }
+
+        // Restart pokud spadneš do prázdna
+        if (player.position.y < -10) {
+            respawn();
+        }
+
+        // Kamera sleduje hráče (Third Person View)
+        camera.position.x = player.position.x;
+        camera.position.y = player.position.y + 3;
+        camera.position.z = player.position.z + 6;
+        camera.lookAt(player.position);
+    }
+
+    function respawn() {
+        player.position.set(0, 5, 0);
+        velocity.set(0, 0, 0);
+        alert("Ouvej! Zkus to znovu.");
+    }
+
+    // --- RENDEROVÁNÍ ---
+    function animate() {
+        requestAnimationFrame(animate);
+        update();
+        renderer.render(scene, camera);
+    }
+
+    // Spuštění smyčky
+    animate();
+
+    // Responsivita okna
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+</script>
+</body>
+</html>
