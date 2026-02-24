@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Block Blast Animated</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --grid-bg: #16213e;
+            --cell-empty: #0f3460;
+            --cell-filled: #e94560;
+            --cell-highlight: #fff700; /* Barva exploze */
+            --cell-size: 38px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px 0;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        h1 { margin: 10px 0; font-size: 24px; }
+        
+        #score-container {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--cell-filled);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Animace skóre */
+        @keyframes scorePulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); color: var(--cell-highlight); }
+            100% { transform: scale(1); }
+        }
+        .score-bump {
+            animation: scorePulse 0.3s ease-out;
+            display: inline-block;
+        }
+
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(8, var(--cell-size));
+            grid-template-rows: repeat(8, var(--cell-size));
+            gap: 2px;
+            background-color: var(--grid-bg);
+            padding: 6px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            position: relative; /* Pro správné vrstvení animací */
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            background-color: var(--cell-empty);
+            border-radius: 4px;
+            transition: background-color 0.1s; /* Rychlý přechod pro běžné změny */
+        }
+
+        .cell.filled {
+            background-color: var(--cell-filled);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        /* --- NOVÉ ANIMACE --- */
+
+        /* 1. Animace položení (Pop In) */
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0.7; }
+            60% { transform: scale(1.15); }
+            100% { transform: scale(1.0); opacity: 1; }
+        }
+        .cell.filled.pop {
+            animation: popIn 0.25s ease-out forwards;
+        }
+
+        /* 2. Animace zničení řady (Blast Out) */
+        @keyframes blastOut {
+            0% { transform: scale(1); background-color: var(--cell-filled); }
+            30% { transform: scale(1.1); background-color: var(--cell-highlight); box-shadow: 0 0 15px var(--cell-highlight); z-index: 10;}
+            100% { transform: scale(0); background-color: var(--cell-highlight); opacity: 0; z-index: 10;}
+        }
+        .cell.clearing {
+            /* Důležité: animační čas musí odpovídat času v JS setTimeout */
+            animation: blastOut 0.4s ease-in forwards !important; 
+        }
+
+        /* -------------------- */
+
+        #tray {
+            display: flex;
+            gap: 15px;
+            margin-top: 40px;
+            height: 100px;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .shape-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        /* Animace při objevení nových tvarů v zásobníku */
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .shape-container.appearing {
+            animation: slideUpFade 0.4s ease-out forwards;
+        }
+
+        .shape {
+            display: grid;
+            gap: 2px;
+            pointer-events: none;
+        }
+
+        .shape-block {
+            width: 20px;
+            height: 20px;
+            background-color: #4ecca3;
+            border-radius: 3px;
+        }
+
+        .drag-clone {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.9;
+            /* Efekt zvednutí při tažení */
+            transform: scale(1.1); 
+            transition: transform 0.1s ease-out;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
+        }
+        
+        .drag-clone .shape-block {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            background-color: #4ecca3;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Block Blast</h1>
+    <div id="score-container">Skóre: <span id="score">0</span></div>
+    <div id="grid"></div>
+    <div id="tray"></div>
+
+    <script>
+        const gridEl = document.getElementById('grid');
+        const trayEl = document.getElementById('tray');
+        const scoreEl = document.getElementById('score');
+        
+        const BOARD_SIZE = 8;
+        let board = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(0));
+        let score = 0;
+        let shapesInTray = 0;
+        // Zámek, aby hráč nemohl táhnout další tvar, zatímco probíhá animace ničení
+        let isAnimatingClear = false; 
+
+        const SHAPES = [
+            [[1]], 
+            [[1,1]], 
+            [[1],[1]], 
+            [[1,1,1]], 
+            [[1],[1],[1]], 
+            [[1,1,1,1]], 
+            [[1],[1],[1],[1]],
+            [[1,1],[1,1]], 
+            [[1,0],[1,1]], 
+            [[0,1],[1,1]],
+            [[1,1],[1,0]],
+            [[1,1],[0,1]],
+            [[1,1,1],[1,0,0],[1,0,0]], 
+            [[1,1,1],[0,0,1],[0,0,1]],
+            [[1,1,1],[0,1,0]],
+            [[0,1,0],[1,1,1]],
+            [[1,0],[1,1],[1,0]],
+            [[0,1],[1,1],[0,1]]
+        ];
+
+        function initBoard() {
+            gridEl.innerHTML = '';
+            for(let r = 0; r < BOARD_SIZE; r++) {
+                for(let c = 0; c < BOARD_SIZE; c++) {
+                    let cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.r = r;
+                    cell.dataset.c = c;
+                    cell.id = `cell-${r}-${c}`;
+                    gridEl.appendChild(cell);
+                }
+            }
+        }
+
+        // Vylepšená funkce renderování
+        function renderBoard(cancelAnimations = false) {
+            for(let r = 0; r < BOARD_SIZE; r++) {
+                for(let c = 0; c < BOARD_SIZE; c++) {
+                    const cell = document.getElementById(`cell-${r}-${c}`);
+                    // Pokud chceme zrušit animace (např. po dokončení mazání)
+                    if (cancelAnimations) {
+                        cell.classList.remove('clearing', 'pop');
+                    }
+
+                    if (board[r][c] === 1) {
+                        cell.classList.add('filled');
+                    } else {
+                        cell.classList.remove('filled');
+                    }
+                }
+            }
+            scoreEl.innerText = score;
+        }
+
+        // Pomocná funkce pro animaci skóre
+        function animateScore() {
+            scoreEl.classList.remove('score-bump');
+            void scoreEl.offsetWidth; // Trigger reflow pro restart animace
+            scoreEl.classList.add('score-bump');
+        }
+
+        function createShapeElement(shapeMatrix, isClone = false) {
+            const shapeDiv = document.createElement('div');
+            shapeDiv.className = 'shape';
+            const gapSize = 2;
+            const blockSize = isClone ? 38 : 20;
+            shapeDiv.style.gridTemplateColumns = `repeat(${shapeMatrix[0].length}, ${blockSize}px)`;
+            shapeDiv.style.gridTemplateRows = `repeat(${shapeMatrix.length}, ${blockSize}px)`;
+            shapeDiv.style.gap = isClone ? '2px' : '2px';
+
+            for(let r = 0; r < shapeMatrix.length; r++) {
+                for(let c = 0; c < shapeMatrix[r].length; c++) {
+                    const block = document.createElement('div');
+                    if (shapeMatrix[r][c] === 1) {
+                        block.className = 'shape-block';
+                        // Pro klon v ruce nastavíme přesnou velikost podle gridu
+                        if(isClone) {
+                             block.style.width = varCss('--cell-size');
+                             block.style.height = varCss('--cell-size');
+                        }
+                    } else {
+                        block.style.visibility = 'hidden';
+                    }
+                    shapeDiv.appendChild(block);
+                }
+            }
+            return shapeDiv;
+        }
+
+        // Pomocná funkce pro čtení CSS proměnných
+        function varCss(v) {
+             return getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+        }
+
+
+        function refillTray() {
+            trayEl.innerHTML = '';
+            shapesInTray = 3;
+            for(let i = 0; i < 3; i++) {
+                const randomShape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+                const container = document.createElement('div');
+                container.className = 'shape-container';
+                // Přidáme třídu pro animaci příletu, s malým zpožděním pro každý tvar
+                setTimeout(() => container.classList.add('appearing'), i * 100);
+                
+                container.appendChild(createShapeElement(randomShape));
+                setupTouchEvents(container, randomShape);
+                trayEl.appendChild(container);
+            }
+        }
+
+        function setupTouchEvents(container, shapeMatrix) {
+            let clone = null;
+            let touchOffsetX = 0;
+            let touchOffsetY = 0;
+
+            container.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (isAnimatingClear) return; // Zámek během animace ničení
+
+                const touch = e.touches[0];
+                clone = document.createElement('div');
+                clone.className = 'drag-clone';
+                clone.appendChild(createShapeElement(shapeMatrix, true));
+                document.body.appendChild(clone);
+
+                container.style.opacity = '0.2';
+                // Posuneme klon výš nad prst
+                touchOffsetX = 40; 
+                touchOffsetY = 100; 
+
+                updateClonePosition(touch.clientX, touch.clientY);
+            }, {passive: false});
+
+            container.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!clone || isAnimatingClear) return;
+                const touch = e.touches[0];
+                updateClonePosition(touch.clientX, touch.clientY);
+            }, {passive: false});
+
+            container.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                if (!clone) return;
+
+                const rect = clone.getBoundingClientRect();
+                const targetEl = document.elementFromPoint(rect.left + 19, rect.top + 19);
+                
+                let placed = false;
+
+                if (targetEl && targetEl.classList.contains('cell') && !isAnimatingClear) {
+                    const r = parseInt(targetEl.dataset.r);
+                    const c = parseInt(targetEl.dataset.c);
+
+                    if (canPlaceShape(shapeMatrix, r, c)) {
+                        placeShape(shapeMatrix, r, c);
+                        placed = true;
+                        container.style.visibility = 'hidden';
+                        shapesInTray--;
+                        
+                        // Kontrola řad s následnou animací
+                        checkLines();
+                        
+                        if (shapesInTray === 0) {
+                            // Pokud se něco maže, počkáme s doplněním déle
+                            setTimeout(refillTray, isAnimatingClear ? 600 : 300);
+                        }
+                    }
+                }
+
+                if (!placed) {
+                    container.style.opacity = '1';
+                }
+
+                clone.remove();
+                clone = null;
+            }, {passive: false});
+
+            function updateClonePosition(x, y) {
+                clone.style.left = (x - touchOffsetX) + 'px';
+                clone.style.top = (y - touchOffsetY) + 'px';
+            }
+        }
+
+        function canPlaceShape(shapeMatrix, startR, startC) {
+            for(let r = 0; r < shapeMatrix.length; r++) {
+                for(let c = 0; c < shapeMatrix[r].length; c++) {
+                    if (shapeMatrix[r][c] === 1) {
+                        let boardR = startR + r;
+                        let boardC = startC + c;
+                        if (boardR < 0 || boardR >= BOARD_SIZE || boardC < 0 || boardC >= BOARD_SIZE) return false;
+                        if (board[boardR][boardC] === 1) return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        // Upravená funkce pro položení tvaru s animací "Pop"
+        function placeShape(shapeMatrix, startR, startC) {
+            let blocksPlaced = 0;
+            for(let r = 0; r < shapeMatrix.length; r++) {
+                for(let c = 0; c < shapeMatrix[r].length; c++) {
+                    if (shapeMatrix[r][c] === 1) {
+                        const targetR = startR + r;
+                        const targetC = startC + c;
+                        board[targetR][targetC] = 1;
+                        blocksPlaced++;
+                        
+                        // Aplikace "pop" animace na konkrétní buňku
+                        const cell = document.getElementById(`cell-${targetR}-${targetC}`);
+                        cell.classList.add('filled');
+                        // Přidáme třídu 'pop' a po chvilce ji odebereme, aby šla znovu použít
+                        cell.classList.add('pop');
+                        setTimeout(() => { cell.classList.remove('pop'); }, 300);
+                    }
+                }
+            }
+            score += blocksPlaced;
+            scoreEl.innerText = score;
+            // RenderBoard zde nevoláme celé, protože jsme třídy přidali ručně výše pro plynulost
+        }
+
+        // Výrazně upravená funkce pro kontrolu a animaci mazání
+        function checkLines() {
+            let rowsToClear = [];
+            let colsToClear = [];
+
+            for(let r = 0; r < BOARD_SIZE; r++) {
+                if (board[r].every(val => val === 1)) rowsToClear.push(r);
+            }
+
+            for(let c = 0; c < BOARD_SIZE; c++) {
+                if (board.every(row => row[c] === 1)) colsToClear.push(c);
+            }
+
+            if (rowsToClear.length > 0 || colsToClear.length > 0) {
+                isAnimatingClear = true; // Zamkneme hru
+
+                // 1. Fáze: Vizuálně označíme buňky k vymazání (spustí CSS animaci)
+                rowsToClear.forEach(r => {
+                    for(let c = 0; c < BOARD_SIZE; c++) {
+                         document.getElementById(`cell-${r}-${c}`).classList.add('clearing');
+                    }
+                });
+                colsToClear.forEach(c => {
+                    for(let r = 0; r < BOARD_SIZE; r++) {
+                         document.getElementById(`cell-${r}-${c}`).classList.add('clearing');
+                    }
+                });
+
+                // 2. Fáze: Počkáme na dokončení CSS animace (400ms), pak smažeme data
+                setTimeout(() => {
+                    rowsToClear.forEach(r => {
+                        for(let c = 0; c < BOARD_SIZE; c++) board[r][c] = 0;
+                    });
+                    colsToClear.forEach(c => {
+                        for(let r = 0; r < BOARD_SIZE; r++) board[r][c] = 0;
+                    });
+
+                    const totalLines = rowsToClear.length + colsToClear.length;
+                    // Bonusové skóre za více řad najednou
+                    score += totalLines * 10 * (totalLines > 1 ? totalLines : 1);
+                    
+                    animateScore(); // Pulzování skóre
+                    renderBoard(true); // Překreslíme a zrušíme animační třídy
+                    isAnimatingClear = false; // Odemkneme hru
+
+                }, 400); // Čas musí odpovídat délce animace 'blastOut' v CSS
+            }
+        }
+
+        initBoard();
+        renderBoard();
+        // Rozšířil jsem seznam tvarů o pár dalších pro větší variabilitu
+        SHAPES.push(...[
+            [[1,1,1,1]], [[1],[1],[1],[1]], // Dlouhé 4
+            [[0,1],[1,1]], [[1,1],[1,0]], [[1,1],[0,1]], [[1,0],[1,1]] // Malá L/Z
+        ]);
+        refillTray();
+    </script>
+</body>
+</html>
