@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>7 Zajímavostí o Brně</title>
+    <title>7 Zajímavostí o Brně & Fotogalerie</title>
     <style>
         :root {
             --primary-color: #d11242; /* Brněnská červená */
             --bg-color: #f4f4f9;
             --text-color: #333;
+            --card-bg: #ffffff;
         }
 
         body {
@@ -24,53 +25,77 @@
             background-color: var(--primary-color);
             color: white;
             text-align: center;
-            padding: 3rem 1rem;
+            padding: 2rem 1rem 0;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         header h1 {
-            margin: 0;
+            margin: 0 0 1rem 0;
             font-size: 2.5rem;
+        }
+
+        /* Navigace pro záložky */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 2rem;
+        }
+
+        .tab-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: background 0.3s;
+            font-weight: bold;
+        }
+
+        .tab-btn:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .tab-btn.active {
+            background-color: var(--bg-color);
+            color: var(--primary-color);
         }
 
         .container {
             max-width: 1000px;
             margin: 2rem auto;
             padding: 0 1rem;
+            min-height: 50vh;
         }
 
+        /* Skrytí obsahu, který není aktivní */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Styly pro fakta */
         .fact-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            background: var(--card-bg);
+            border-left: 5px solid var(--primary-color);
+            padding: 1.5rem 2rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px 8px 8px 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
-        @media (min-width: 768px) {
-            .fact-card {
-                flex-direction: row;
-            }
-            .fact-card:nth-child(even) {
-                flex-direction: row-reverse;
-            }
-        }
-
-        .fact-img {
-            flex: 1;
-            min-height: 300px;
-            background-size: cover;
-            background-position: center;
-        }
-
-        .fact-content {
-            flex: 1.5;
-            padding: 2rem;
-        }
-
-        .fact-content h2 {
+        .fact-card h2 {
             color: var(--primary-color);
             margin-top: 0;
             display: flex;
@@ -81,14 +106,42 @@
         .fact-number {
             background: var(--primary-color);
             color: white;
-            width: 35px;
-            height: 35px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1rem;
             flex-shrink: 0;
+        }
+
+        /* Styly pro galerii */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery-item {
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .gallery-item p {
+            margin: 10px 0 0 0;
+            font-weight: bold;
+            color: var(--text-color);
         }
 
         footer {
@@ -103,67 +156,87 @@
 <body>
 
     <header>
-        <h1>7 Zajímavostí o Brně, které možná neznáte</h1>
-        <p>Objevte tajemství moravské metropole!</p>
+        <h1>To nejlepší z Brna</h1>
+        <p>Zajímavosti a krásy moravské metropole</p>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('zajimavosti')">7 Zajímavostí</button>
+            <button class="tab-btn" onclick="openTab('galerie')">Fotogalerie</button>
+        </div>
     </header>
 
     <div class="container">
         
-        <article class="fact-card">
-            <div class="fact-img" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Brn%C4%9Bnsk%C3%BD_orloj.jpg/800px-Brn%C4%9Bnsk%C3%BD_orloj.jpg');"></div>
-            <div class="fact-content">
+        <div id="zajimavosti" class="tab-content active">
+            <article class="fact-card">
                 <h2><span class="fact-number">1</span> Poledne se zvoní v 11:00</h2>
-                <p>Když na katedrále sv. Petra a Pavla zvoní poledne, je ve skutečnosti teprve 11 hodin dopoledne. Je to památka na obléhání Brna Švédy v roce 1645. Švédský generál Torstenson prý prohlásil, že pokud město nedobyde do poledne, odtáhne. Brňané to zjistili a odzvonili poledne o hodinu dřív. Slavný černý "orloj" na náměstí Svobody proto také vypouští skleněnou kuličku už v 11:00.</p>
-            </div>
-        </article>
+                <p>Na památku obléhání Brna Švédy (1645) zvoní na Petrově poledne už v 11 hodin dopoledne. Švédský generál totiž slíbil, že odtáhne, pokud město nedobyde do poledne. Brňané to odzvonili o hodinu dřív a zachránili se.</p>
+            </article>
 
-        <article class="fact-card">
-            <div class="fact-img" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Brno_Star%C3%A1_radnice_krokod%C3%BDl.jpg/800px-Brno_Star%C3%A1_radnice_krokod%C3%BDl.jpg');"></div>
-            <div class="fact-content">
+            <article class="fact-card">
                 <h2><span class="fact-number">2</span> Brněnský drak je krokodýl</h2>
-                <p>Legendární brněnský drak, který visí v průjezdu Staré radnice a podle pověsti terorizoval okolí, je ve skutečnosti vycpaný krokodýl nilský. Údajně ho městu daroval turecký sultán na začátku 17. století.</p>
-            </div>
-        </article>
+                <p>Legendární brněnský drak visící ve Staré radnici je vycpaný krokodýl nilský, pravděpodobně dar od tureckého sultána ze 17. století.</p>
+            </article>
 
-        <article class="fact-card">
-            <div class="fact-img" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Brno_-_Star%C3%A1_radnice_-_Port%C3%A1l.jpg/800px-Brno_-_Star%C3%A1_radnice_-_Port%C3%A1l.jpg');"></div>
-            <div class="fact-content">
+            <article class="fact-card">
                 <h2><span class="fact-number">3</span> Křivá věžička jako pomsta</h2>
-                <p>Když se podíváte na gotický portál Staré radnice, všimnete si, že prostřední věžička je výrazně nakřivo. Podle pověsti ji takto schválně vytesal mistr Anton Pilgram, protože mu brněnští radní nechtěli zaplatit domluvenou částku za jeho práci.</p>
-            </div>
-        </article>
+                <p>Prostřední věžička gotického portálu Staré radnice je schválně nakřivo. Mistr Anton Pilgram ji tak vytesal jako pomstu radním, kteří mu nezaplatili domluvenou částku.</p>
+            </article>
 
-        <article class="fact-card">
-            <div class="fact-img" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Villa_Tugendhat_in_Brno_02.jpg/800px-Villa_Tugendhat_in_Brno_02.jpg');"></div>
-            <div class="fact-content">
-                <h2><span class="fact-number">4</span> Vila Tugendhat a UNESCO</h2>
-                <p>Vila Tugendhat je mistrovským dílem funkcionalismu od architekta Ludwiga Miese van der Rohe. Je to jediná památka moderní architektury v ČR zapsaná na seznamu UNESCO. A malý historický bonus: právě tady v roce 1992 Václav Klaus a Vladimír Mečiar podepsali dohodu o rozdělení Československa.</p>
-            </div>
-        </article>
+            <article class="fact-card">
+                <h2><span class="fact-number">4</span> Vila Tugendhat</h2>
+                <p>Jediná památka moderní architektury v ČR zapsaná v UNESCO. V roce 1992 zde byla podepsána dohoda o rozdělení Československa.</p>
+            </article>
 
-        <article class="fact-card">
-            <div class="fact-img" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Ossuary_under_the_Church_of_St._James%2C_Brno_07.jpg/800px-Ossuary_under_the_Church_of_St._James%2C_Brno_07.jpg');"></div>
-            <div class="fact-content">
-                <h2><span class="fact-number">5</span> Druhá největší kostnice v Evropě</h2>
-                <p>Věděli jste, že pod kostelem sv. Jakuba se ukrývá kostnice, která je druhá největší v celé Evropě (hned po katakombách v Paříži)? Odpočívá tu přes 50 000 obětí morových ran a válek.</p>
-            </div>
-        </article>
+            <article class="fact-card">
+                <h2><span class="fact-number">5</span> Druhá největší kostnice</h2>
+                <p>Pod kostelem sv. Jakuba leží přes 50 000 obětí morových ran a válek. Je to druhá největší kostnice v Evropě hned po pařížských katakombách.</p>
+            </article>
 
-        <article class="fact-card">
-            <div class="fact-img" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Capuchin_Crypt_in_Brno_01.jpg/800px-Capuchin_Crypt_in_Brno_01.jpg');"></div>
-            <div class="fact-content">
-                <h2><span class="fact-number">6</span> Dokonale zachovalé mumie</h2>
-                <p>V Kapucínské kryptě nedaleko Zelného trhu najdete vysušená těla mnichů a významných měšťanů. Díky specifickému systému odvětrávání v kryptě se těla přirozeně mumifikovala a zachovala se po staletí bez jakéhokoliv balzamování.</p>
-            </div>
-        </article>
+            <article class="fact-card">
+                <h2><span class="fact-number">6</span> Kapucínské mumie</h2>
+                <p>V Kapucínské kryptě najdete přirozeně mumifikovaná těla mnichů a měšťanů. Zachovala se díky specifickému proudění vzduchu bez jakéhokoliv balzamování.</p>
+            </article>
 
-        <article class="fact-card">
-            <div class="fact-img" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Brno_Vlnena_demolice_2016_%2804%29.jpg/800px-Brno_Vlnena_demolice_2016_%2804%29.jpg');"></div>
-            <div class="fact-content">
+            <article class="fact-card">
                 <h2><span class="fact-number">7</span> Moravský Manchester</h2>
-                <p>V 19. a na začátku 20. století bylo Brno jedním z nejdůležitějších center textilního průmyslu na světě. Díky obrovskému počtu továren a komínů si město vysloužilo hrdou přezdívku "Moravský Manchester".</p>
+                <p>V 19. století bylo Brno světovým centrem textilního průmyslu plným továren a komínů, díky čemuž získalo svou tehdejší industriální přezdívku.</p>
+            </article>
+        </div>
+
+        <div id="galerie" class="tab-content">
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Spilberk_castle_Brno.jpg/800px-Spilberk_castle_Brno.jpg" alt="Hrad Špilberk" onerror="this.src='https://via.placeholder.com/800x600?text=Obrázek+nenalezen'">
+                    <p>Hrad Špilberk</p>
+                </div>
+                
+                <div class="gallery-item">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Katedr%C3%A1la_svat%C3%A9ho_Petra_a_Pavla_v_Brn%C4%9B.jpg/800px-Katedr%C3%A1la_svat%C3%A9ho_Petra_a_Pavla_v_Brn%C4%9B.jpg" alt="Petrov" onerror="this.src='https://via.placeholder.com/800x600?text=Obrázek+nenalezen'">
+                    <p>Katedrála sv. Petra a Pavla</p>
+                </div>
+
+                <div class="gallery-item">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/N%C3%A1m%C4%9Bst%C3%AD_Svobody_-_Brno.jpg/800px-N%C3%A1m%C4%9Bst%C3%AD_Svobody_-_Brno.jpg" alt="Náměstí Svobody" onerror="this.src='https://via.placeholder.com/800x600?text=Obrázek+nenalezen'">
+                    <p>Náměstí Svobody</p>
+                </div>
+
+                <div class="gallery-item">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Villa_Tugendhat_in_Brno_02.jpg/800px-Villa_Tugendhat_in_Brno_02.jpg" alt="Vila Tugendhat" onerror="this.src='https://via.placeholder.com/800x600?text=Obrázek+nenalezen'">
+                    <p>Vila Tugendhat</p>
+                </div>
+
+                <div class="gallery-item">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Zeln%C3%BD_trh%2C_Brno.jpg/800px-Zeln%C3%BD_trh%2C_Brno.jpg" alt="Zelný trh" onerror="this.src='https://via.placeholder.com/800x600?text=Obrázek+nenalezen'">
+                    <p>Zelný trh</p>
+                </div>
+
+                <div class="gallery-item">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Brn%C4%9Bnsk%C3%BD_orloj.jpg/800px-Brn%C4%9Bnsk%C3%BD_orloj.jpg" alt="Brněnský orloj" onerror="this.src='https://via.placeholder.com/800x600?text=Obrázek+nenalezen'">
+                    <p>Brněnský "orloj"</p>
+                </div>
             </div>
-        </article>
+        </div>
 
     </div>
 
@@ -171,5 +244,24 @@
         <p>Vytvořeno pro GitHub Pages | Brno, Česko</p>
     </footer>
 
+    <script>
+        function openTab(tabName) {
+            // Skryje všechny obsahy záložek
+            var contents = document.getElementsByClassName("tab-content");
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].classList.remove("active");
+            }
+
+            // Odebere třídu 'active' ze všech tlačítek
+            var buttons = document.getElementsByClassName("tab-btn");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove("active");
+            }
+
+            // Zobrazí vybranou záložku a zvýrazní tlačítko
+            document.getElementById(tabName).classList.add("active");
+            event.currentTarget.classList.add("active");
+        }
+    </script>
 </body>
 </html>
